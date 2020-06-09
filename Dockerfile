@@ -48,6 +48,18 @@ RUN python3.7 -m pip install --no-cache \
   mopidy-spotify \
   mopidy-local \
   Mopidy-GMusic \
+  Mopidy-Dirble \
+  Mopidy-Emby \
+  Mopidy-Party \
+  Mopidy-Podcast \
+  Mopidy-Podcast-iTunes \
+  Mopidy-radio-de \
+  Mopidy-Scrobbler \
+  Mopidy-SoundCloud \
+  Mopidy-Spotify \
+  Mopidy-Spotify-Web \
+  Mopidy-TuneIn \
+  Mopidy-YouTube \
   # pip not up-to-date for Mopidy-Tidal (https://github.com/tehkillerbee/mopidy-tidal/issues/14)
   git+https://github.com/tehkillerbee/mopidy-tidal.git@master
 
