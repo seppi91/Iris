@@ -19,7 +19,6 @@ import {
 } from '../../util/helpers';
 import { sortItems, applyFilter } from '../../util/arrays';
 import { collate } from '../../util/format';
-import { i18n, I18n } from '../../locale';
 
 class LibraryAlbums extends React.Component {
   constructor(props) {
@@ -33,44 +32,26 @@ class LibraryAlbums extends React.Component {
   }
 
   componentDidMount() {
-    const {
-      location: {
-        state = {},
-      },
-      uiActions: {
-        setWindowTitle,
-      },
-      mopidy_connected,
-      mopidy_library_albums_status,
-      source,
-      mopidyActions,
-      spotifyActions,
-      googleActions,
-      google_available,
-      google_library_albums_status,
-      spotify_available,
-      spotify_library_albums_status,
-    } = this.props;
-
     // Restore any limit defined in our location state
+    const state = (this.props.location.state ? this.props.location.state : {});
     if (state.limit) {
       this.setState({
         limit: state.limit,
       });
     }
 
-    setWindowTitle(i18n('library.albums.title'));
+    this.props.uiActions.setWindowTitle('Albums');
 
-    if (mopidy_connected && mopidy_library_albums_status !== 'finished' && mopidy_library_albums_status !== 'started' && (source === 'all' || source === 'local')) {
-      mopidyActions.getLibraryAlbums();
+    if (this.props.mopidy_connected && this.props.mopidy_library_albums_status != 'finished' && this.props.mopidy_library_albums_status != 'started' && (this.props.source == 'all' || this.props.source == 'local')) {
+      this.props.mopidyActions.getLibraryAlbums();
     }
 
-    if (google_available && google_library_albums_status !== 'finished' && google_library_albums_status !== 'started' && (source === 'all' || source === 'google')) {
-      googleActions.getLibraryAlbums();
+    if (this.props.google_available && this.props.google_library_albums_status != 'finished' && this.props.google_library_albums_status != 'started' && (this.props.source == 'all' || this.props.source == 'google')) {
+      this.props.googleActions.getLibraryAlbums();
     }
 
-    if (spotify_available && spotify_library_albums_status !== 'finished' && spotify_library_albums_status !== 'started' && (source == 'all' || source === 'spotify')) {
-      spotifyActions.getLibraryAlbums();
+    if (this.props.spotify_available && this.props.spotify_library_albums_status != 'finished' && this.props.spotify_library_albums_status != 'started' && (this.props.source == 'all' || this.props.source == 'spotify')) {
+      this.props.spotifyActions.getLibraryAlbums();
     }
   }
 
@@ -90,7 +71,7 @@ class LibraryAlbums extends React.Component {
       spotify_library_albums_status,
     } = this.props;
 
-    if (mopidy_connected && (source === 'all' || source === 'local')) {
+    if (mopidy_connected && (source == 'all' || source == 'local')) {
       if (!prev_mopidy_connected) mopidyActions.getLibraryAlbums();
 
       // Filter changed, but we haven't got this provider's library yet
@@ -99,7 +80,7 @@ class LibraryAlbums extends React.Component {
       }
     }
 
-    if (google_available && (source === 'all' || source === 'google')) {
+    if (google_available && (source == 'all' || source == 'google')) {
       // Filter changed, but we haven't got this provider's library yet
       if (source !== 'all' && source !== 'google' && google_library_albums_status !== 'finished' && google_library_albums_status !== 'started') {
         googleActions.getLibraryAlbums();
@@ -114,32 +95,22 @@ class LibraryAlbums extends React.Component {
     }
   }
 
-  handleContextMenu = (e, item) => {
-    const {
-      uiActions: {
-        showContextMenu,
-      },
-    } = this.props;
-
-    showContextMenu({
+  handleContextMenu(e, item) {
+    const data = {
       e,
       context: 'album',
       uris: [item.uri],
       items: [item],
-    });
+    };
+    this.props.uiActions.showContextMenu(data);
   }
 
-  moreURIsToLoad = () => {
-    const {
-      albums,
-      library_albums,
-    } = this.props;
-
+  moreURIsToLoad() {
     const uris = [];
-    if (albums && library_albums) {
-      for (let i = 0; i < library_albums.length; i++) {
-        const uri = library_albums[i];
-        if (!albums.hasOwnProperty(uri) && uriSource(uri) == 'local') {
+    if (this.props.albums && this.props.library_albums) {
+      for (let i = 0; i < this.props.library_albums.length; i++) {
+        const uri = this.props.library_albums[i];
+        if (!this.props.albums.hasOwnProperty(uri) && uriSource(uri) == 'local') {
           uris.push(uri);
         }
 
@@ -151,42 +122,29 @@ class LibraryAlbums extends React.Component {
     return uris;
   }
 
-  loadMore = () => {
-    const {
-      limit,
-      per_page,
-    } = this.state;
-    const {
-      location: {
-        state,
-      },
-      history,
-    } = this.props;
+  loadMore() {
+    const new_limit = this.state.limit + this.state.per_page;
 
-    const new_limit = limit + per_page;
     this.setState({ limit: new_limit });
-    history.replace({ state: { ...state, limit: new_limit } });
+
+    // Set our pagination to location state
+    const state = (this.props.location && this.props.location.state ? this.props.location.state : {});
+    state.limit = new_limit;
+    this.props.history.replace({ state });
   }
 
-  setSort = (value) => {
-    const {
-      sort,
-      sort_reverse,
-      uiActions: {
-        set,
-      },
-    } = this.props;
-
+  setSort(value) {
     let reverse = false;
-    if (sort === value) reverse = !sort_reverse;
+    if (this.props.sort == value) reverse = !this.props.sort_reverse;
 
-    set({
+    const data = {
       library_albums_sort_reverse: reverse,
       library_albums_sort: value,
-    });
+    };
+    this.props.uiActions.set(data);
   }
 
-  renderView = () => {
+  renderView() {
     let albums = [];
 
     // Spotify library items
@@ -266,7 +224,7 @@ class LibraryAlbums extends React.Component {
           <LazyLoadListener
             loadKey={total_albums > this.state.limit ? this.state.limit : total_albums}
             showLoader={this.state.limit < total_albums}
-            loadMore={this.loadMore}
+            loadMore={() => this.loadMore()}
           />
         </section>
       );
@@ -290,63 +248,63 @@ class LibraryAlbums extends React.Component {
     const source_options = [
       {
         value: 'all',
-        label: i18n('fields.filters.all'),
+        label: 'All',
       },
       {
         value: 'local',
-        label: i18n('services.mopidy.local'),
+        label: 'Local',
       },
     ];
 
     if (this.props.spotify_available) {
       source_options.push({
         value: 'spotify',
-        label: i18n('services.spotify.title'),
+        label: 'Spotify',
       });
     }
 
     if (this.props.google_available) {
       source_options.push({
         value: 'google',
-        label: i18n('services.google.title'),
+        label: 'Google',
       });
     }
 
     const view_options = [
       {
         value: 'thumbnails',
-        label: i18n('fields.filters.thumbnails'),
+        label: 'Thumbnails',
       },
       {
         value: 'list',
-        label: i18n('fields.filters.list'),
+        label: 'List',
       },
     ];
 
     const sort_options = [
       {
         value: null,
-        label: i18n('fields.filters.as_loaded'),
+        label: 'As loaded',
       },
       {
         value: 'name',
-        label: i18n('fields.filters.name'),
+        label: 'Name',
       },
       {
         value: 'artists.first.name',
-        label: i18n('fields.filters.artist'),
+        label: 'Artist',
       },
       {
         value: 'last_modified',
-        label: i18n('fields.filters.updated'),
+        label: 'Updated',
       },
       {
         value: 'tracks_uris.length',
-        label: i18n('fields.filters.tracks'),
+        label: 'Tracks',
       },
       {
         value: 'uri',
-        label: i18n('fields.filters.source'),
+        label: 'Source',
       },
     ];
 
@@ -359,7 +317,7 @@ class LibraryAlbums extends React.Component {
         />
         <DropdownField
           icon="swap_vert"
-          name={i18n('fields.sort')}
+          name="Sort"
           value={this.props.sort}
           valueAsLabel
           options={sort_options}
@@ -368,7 +326,7 @@ class LibraryAlbums extends React.Component {
         />
         <DropdownField
           icon="visibility"
-          name={i18n('fields.view')}
+          name="View"
           value={this.props.view}
           valueAsLabel
           options={view_options}
@@ -376,7 +334,7 @@ class LibraryAlbums extends React.Component {
         />
         <DropdownField
           icon="cloud"
-          name={i18n('fields.source')}
+          name="Source"
           value={this.props.source}
           valueAsLabel
           options={source_options}
@@ -389,7 +347,7 @@ class LibraryAlbums extends React.Component {
       <div className="view library-albums-view">
         <Header options={options} uiActions={this.props.uiActions}>
           <Icon name="album" type="material" />
-          <I18n path="library.albums.title" />
+					My albums
         </Header>
         {this.renderView()}
       </div>

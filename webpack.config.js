@@ -30,7 +30,14 @@ const config = {
 				exclude: /node_modules/,
 				use: [
 					{
-						loader: 'babel-loader'
+						loader: 'babel-loader',
+						options: {
+							presets: [
+								'react',
+								'es2015',
+								'stage-2'
+							]
+						}
 					}
 				]
 			},
@@ -47,11 +54,6 @@ const config = {
 					'css-loader',
 					'sass-loader',
 				]
-			},
-			{
-        test: /\.ya?ml$/,
-        type: 'json',
-        use: 'yaml-loader'
 			},
 			{
 				// load external resources (ie Google fonts)

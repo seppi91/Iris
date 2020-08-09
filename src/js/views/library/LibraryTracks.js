@@ -11,17 +11,13 @@ import * as uiActions from '../../services/ui/actions';
 import * as mopidyActions from '../../services/mopidy/actions';
 import * as spotifyActions from '../../services/spotify/actions';
 import { isLoading } from '../../util/helpers';
-import { I18n, i18n } from '../../locale';
 
 class LibraryTracks extends React.Component {
   componentDidMount() {
-    this.props.uiActions.setWindowTitle(i18n('library.tracks.title'));
+    this.props.uiActions.setWindowTitle('Tracks');
 
     if (!this.props.spotify_available) {
-      this.props.uiActions.createNotification({
-        level: 'warning',
-        content: i18n('errors.enable_first', { provider: i18n('services.spotify.title') }),
-      });
+      this.props.uiActions.createNotification({ level: 'warning', content: 'Enable Spotify to browse tracks' });
     } else if (this.props.library_tracks === undefined) {
       this.props.spotifyActions.getLibraryTracks();
     }
@@ -46,7 +42,7 @@ class LibraryTracks extends React.Component {
     if (isLoading(this.props.load_queue, ['spotify_me/tracks?'])) {
       return (
         <div className="view library-tracks-view">
-          <Header icon="music" title={i18n('library.tracks.title')} />
+          <Header icon="music" title="My tracks" />
           <Loader body loading />
         </div>
       );
@@ -65,7 +61,7 @@ class LibraryTracks extends React.Component {
     const options = (
       <a className="button button--no-hover" onClick={(e) => this.playAll(e)}>
         <Icon name="play_circle_filled" />
-        <I18n path="actions.play_all" />
+Play all
       </a>
     );
 
@@ -73,7 +69,7 @@ class LibraryTracks extends React.Component {
       <div className="view library-tracks-view">
         <Header options={options} uiActions={this.props.uiActions}>
           <Icon name="music_note" type="material" />
-					<I18n path="library.tracks.title" />
+					My tracks
         </Header>
         <section className="content-wrapper">
           <TrackList tracks={tracks} />

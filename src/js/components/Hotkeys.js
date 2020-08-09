@@ -158,7 +158,7 @@ class Hotkeys extends React.Component {
           uiActions.dragEnd();
           prevent = true;
           if (allow_reporting) ReactGA.event({ category: 'Hotkey', action: key, label: 'Dragging' });
-        } else if ($('body').hasClass('modal-open')) {
+        } else if (modal) {
           window.history.back();
           prevent = true;
           if (allow_reporting) ReactGA.event({ category: 'Hotkey', action: key, label: 'Modal' });

@@ -8,7 +8,7 @@ import PlaylistGrid from '../components/PlaylistGrid';
 import FollowButton from '../components/Fields/FollowButton';
 import LazyLoadListener from '../components/LazyLoadListener';
 import Parallax from '../components/Parallax';
-import NiceNumber, { nice_number } from '../components/NiceNumber';
+import NiceNumber from '../components/NiceNumber';
 import Loader from '../components/Loader';
 import Icon from '../components/Icon';
 import * as coreActions from '../services/core/actions';
@@ -20,21 +20,12 @@ import {
   sourceIcon,
 } from '../util/helpers';
 import { collate } from '../util/format';
-import { i18n, I18n } from '../locale';
 
 class User extends React.Component {
   componentDidMount() {
-    const {
-      uri,
-      coreActions: {
-        loadUser,
-        loadUserPlaylists,
-      },
-    } = this.props;
-
     this.setWindowTitle();
-    loadUser(uri);
-    loadUserPlaylists(uri);
+    this.props.coreActions.loadUser(this.props.uri);
+    this.props.coreActions.loadUserPlaylists(this.props.uri);
   }
 
   componentDidUpdate = ({
@@ -58,69 +49,55 @@ class User extends React.Component {
     if (!prevUser && user) this.setWindowTitle(user);
   }
 
-  setWindowTitle = (user = this.props.user) => {
-    const {
-      uiActions: { setWindowTitle },
-    } = this.props;
+  setWindowTitle(user = this.props.user) {
     if (user) {
-      setWindowTitle(i18n('user.title_window', { name: user.name }));
+      this.props.uiActions.setWindowTitle(`${user.name} (user)`);
     } else {
-      setWindowTitle(i18n('user.title'));
+      this.props.uiActions.setWindowTitle('User');
     }
   }
 
-  loadMore = () => {
-    const {
-      uri,
-      spotifyActions: { getMore },
-      user: { playlists_more } = {},
-    } = this.props;
-
-    getMore(
-      playlists_more,
+  loadMore() {
+    this.props.spotifyActions.getMore(
+      this.props.user.playlists_more,
       {
         parent_type: 'user',
-        parent_key: uri,
+        parent_key: this.props.uri,
         records_type: 'playlist',
       },
     );
   }
 
-  isMe = () => {
-    const {
-      uri,
-      me: { id } = {},
-    } = this.props;
-
-    return (id && id === getFromUri('userid', uri));
+  isMe() {
+    const userid = getFromUri('userid', this.props.uri);
+    return (this.props.me && this.props.me.id && this.props.me.id == userid);
   }
 
-  render = () => {
-    const {
-      uri,
-      load_queue,
-      user: userProp,
-      playlists,
-      slim_mode,
-    } = this.props;
+  render() {
+    const user_id = getFromUri('userid', this.props.uri);
 
-    const user_id = getFromUri('userid', uri);
-
-    if (!userProp) {
-      if (isLoading(load_queue, [`spotify_users/${user_id}`, `spotify_users/${user_id}/playlists/?`])) {
+    if (!this.props.user) {
+      if (isLoading(this.props.load_queue, [`spotify_users/${user_id}`, `spotify_users/${user_id}/playlists/?`])) {
         return <Loader body loading />
       }
       return (
         <ErrorMessage type="not-found" title="Not found">
           <p>
-            <I18n path="errors.uri_not_found" uri={uri} />
+Could not find user with URI "
+            {encodeURIComponent(this.props.uri)}
+"
           </p>
         </ErrorMessage>
       );
     }
 
-    const user = collate(userProp, { playlists });
-    const image = user.images ? user.images.huge : null;
+    const user = collate(this.props.user, { playlists: this.props.playlists });
+
+    if (user && user.images) {
+      var image = user.images.huge;
+    } else {
+      var image = null;
+    }
 
     return (
       <div className="view user-view preserve-3d">
@@ -139,36 +116,27 @@ class User extends React.Component {
                 <h1>{user.name}</h1>
                 <div className="heading__content__details">
                   <div className="actions">
-                    <FollowButton
-                      className="primary"
-                      uri={user.uri}
-                    />
+                    <FollowButton className="primary" uri={user.uri} addText="Follow" removeText="Unfollow" />
                   </div>
                   <h2>
                     <ul className="details">
-                      {!slim_mode && (
-                        <li className="source">
-                          <Icon type="fontawesome" name={sourceIcon(user.uri)} />
-                        </li>
-                      )}
-                      {user.playlists_total && (
-                        <li>
-                          <I18n path="specs.playlists" count={nice_number(user.playlists_total)} />
-                        </li>
-                      )}
-                      {user.followers && (
-                      <li>
-                        <I18n path="specs.followers" count={nice_number(user.followers)} />
-                      </li>
-                      )}
-                      {this.isMe() && (
-                        <li>
-                          <span className="blue-text">
-                            <I18n path="user.you" />
-                          </span>
-                        </li>
-                      )}
-                    </ul>
+                  {!this.props.slim_mode ? <li className="source"><Icon type="fontawesome" name={sourceIcon(user.uri)} /></li> : null}
+                  {user.playlists_total ? (
+                  <li>
+                  <NiceNumber value={user.playlists_total} />
+                  {' '}
+playlists
+                </li>
+                ) : null}
+                  {user.followers ? (
+                  <li>
+                  <NiceNumber value={user.followers} />
+                  {' '}
+followers
+                </li>
+                ) : null}
+                  {this.isMe() ? <li><span className="blue-text">You</span></li> : null}
+                </ul>
                   </h2>
                 </div>
               </div>
@@ -178,14 +146,12 @@ class User extends React.Component {
 
         <div className="content-wrapper">
           <section className="grid-wrapper">
-            <h4>
-              <I18n path="playlist.title_plural" />
-            </h4>
+            <h4>Playlists</h4>
             <PlaylistGrid playlists={user.playlists} />
             <LazyLoadListener
               loadKey={user.playlists_more}
               showLoader={user.playlists_more}
-              loadMore={this.loadMore}
+              loadMore={() => this.loadMore()}
             />
           </section>
         </div>

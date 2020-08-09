@@ -7,270 +7,73 @@ import * as coreActions from '../../services/core/actions';
 import * as uiActions from '../../services/ui/actions';
 import * as mopidyActions from '../../services/mopidy/actions';
 import * as spotifyActions from '../../services/spotify/actions';
-import { I18n, i18n } from '../../locale';
-import { uriType } from '../../util/helpers';
-import Icon from '../../components/Icon';
-import TextField from '../../components/Fields/TextField';
-import LinksSentence from '../../components/LinksSentence';
-
-const UriListItem = ({
-  uri,
-  tracks,
-  random_tracks,
-  albums,
-  remove,
-}) => {
-  const type = uriType(uri);
-  let item = null;
-  switch (type) {
-    case 'track':
-      item = tracks[uri];
-      break;
-    case 'album':
-      item = albums[uri];
-      break;
-    default:
-      break;
-  }
-  if (!item) {
-    item = random_tracks.find((track) => track.uri === uri);
-  }
-  return (
-    <div className="list__item list__item--no-interaction">
-      {item ? item.name : <span className="mid_grey-text">{uri}</span>}
-      {item && item.artists && (
-        <I18n path="common.by" contentAfter>
-          <LinksSentence nolinks items={item.artists} />
-        </I18n>
-      )}
-      <span className="mid_grey-text">{` (${type})`}</span>
-      <button
-        className="button button--discrete button--destructive button--tiny pull-right"
-        type="button"
-        onClick={() => remove(uri)}
-      >
-        <Icon name="delete" />
-        <I18n path="actions.remove" />
-      </button>
-    </div>
-  );
-};
 
 class AddToQueue extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      text: '',
-      error: '',
+      uris: '',
       next: false,
     };
   }
 
   componentDidMount() {
-    const {
-      uiActions: {
-        setWindowTitle,
-      },
-    } = this.props;
-
-    setWindowTitle(i18n('modal.add_to_queue.title'));
+    this.props.uiActions.setWindowTitle('Add to queue');
   }
 
-  onSubmit = (e) => {
-    const {
-      next,
-    } = this.state;
-    const {
-      mopidyActions: {
-        enqueueURIs,
-      },
-      view: {
-        uris = [],
-      },
-    } = this.props;
-
+  handleSubmit(e) {
     e.preventDefault();
-    enqueueURIs(uris, null, next);
-    this.reset();
+    const uris = this.state.uris.split(',');
+    this.props.mopidyActions.enqueueURIs(uris, null, this.state.next);
     window.history.back();
   }
 
-  onChange = (text) => {
-    this.setState({ text });
-  }
-
-  reset = () => {
-    const {
-      coreActions: {
-        viewDataLoaded,
-      },
-    } = this.props;
-
-    viewDataLoaded({ uris: [], random_tracks: [] });
-  }
-
-  addRandom = () => {
-    const {
-      mopidyActions: {
-        view_getRandomTracks,
-      },
-    } = this.props;
-
-    view_getRandomTracks(20);
-  }
-
-  addUris = () => {
-    const {
-      text,
-    } = this.state;
-    const {
-      view: {
-        uris: prevUris = [],
-      },
-      coreActions: {
-        loadItem,
-        viewDataLoaded,
-      },
-    } = this.props;
-    const uris = text.split(',');
-
-    const validatedUris = uris.filter((uri) => uriType(uri));
-
-    validatedUris.forEach((uri) => {
-      loadItem(uri);
-    });
-
-    this.setState({ text: '' });
-    viewDataLoaded({ uris: [...prevUris, ...validatedUris] });
-  }
-
-  removeUri = (uri) => {
-    const {
-      view: {
-        uris = [],
-      },
-      coreActions: {
-        viewDataLoaded,
-      },
-    } = this.props;
-
-    viewDataLoaded({ uris: uris.filter((item) => item !== uri) });
-  }
-
-  render = () => {
-    const {
-      tracks,
-      albums,
-      view: {
-        uris = [],
-        random_tracks = [],
-      },
-    } = this.props;
-    const {
-      text,
-      error,
-      next,
-    } = this.state;
-
+  render() {
     return (
       <Modal className="modal--add-to-queue">
-        <h1>
-          <I18n path="modal.add_to_queue.title" />
-        </h1>
-        <h2 className="mid_grey-text">
-          <I18n path="modal.add_to_queue.subtitle" />
-        </h2>
+        <h1>Add to queue</h1>
+        <h2 className="mid_grey-text">Add a comma-separated list of URIs to the play queue. You must have the appropriate Mopidy backend enabled for each URI schema (eg spotify:, yt:).</h2>
 
-        <form onSubmit={this.onSubmit}>
-
+        <form onSubmit={(e) => this.handleSubmit(e)}>
           <div className="field text">
-            <div className="name">
-              <I18n path="fields.uri" />
-            </div>
+            <div className="name">URI(s)</div>
             <div className="input">
-              <TextField
-                onChange={this.onChange}
-                value={text}
+              <input
+                type="text"
+                onChange={(e) => this.setState({ uris: e.target.value })}
+                value={this.state.uris}
               />
-              <span className="button discrete add-uri no-hover" onClick={this.addUris}>
-                <Icon name="add" />
-                <I18n path="actions.add" />
-              </span>
-              {error && <span className="description error">{error}</span>}
-            </div>
-          </div>
-
-          <div className="field text">
-            <div className="name">
-              <I18n path="fields.items_to_add.label" />
-            </div>
-            <div className="input">
-              {uris.length ? (
-                <div className="list">
-                  {uris.map((uri, index) => (
-                    <UriListItem
-                      uri={uri}
-                      tracks={tracks}
-                      random_tracks={random_tracks}
-                      albums={albums}
-                      remove={this.removeUri}
-                      key={`${uri}_${index}`}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <span className="text mid_grey-text">
-                  <I18n path="fields.items_to_add.placeholder" />
-                </span>
-              )}
             </div>
           </div>
 
           <div className="field radio white">
             <div className="name">
-              <I18n path="modal.add_to_queue.position.label" />
+							Position
             </div>
             <div className="input">
               <label>
                 <input
                   type="radio"
                   name="next"
-                  checked={!next}
-                  onChange={() => this.setState({ next: false })}
+                  checked={!this.state.next}
+                  onChange={(e) => this.setState({ next: false })}
                 />
-                <span className="label">
-                  <I18n path="modal.add_to_queue.position.end" />
-                </span>
+                <span className="label">End</span>
               </label>
               <label>
                 <input
                   type="radio"
                   name="next"
-                  checked={next}
-                  onChange={() => this.setState({ next: true })}
+                  checked={this.state.next}
+                  onChange={(e) => this.setState({ next: true })}
                 />
-                <span className="label">
-                  <I18n path="modal.add_to_queue.position.next" />
-                </span>
+                <span className="label">After current track</span>
               </label>
             </div>
           </div>
 
           <div className="actions centered-text">
-            <button
-              type="button"
-              className="button button--grey button--large"
-              onClick={this.addRandom}
-            >
-              <I18n path="modal.add_to_queue.add_random" />
-            </button>
-            <button
-              type="submit"
-              className="button button--primary button--large"
-              disabled={!uris.length}
-            >
-              <I18n path="actions.add" />
-            </button>
+            <button type="submit" className="button button--primary button--large">Add</button>
           </div>
         </form>
       </Modal>
@@ -278,11 +81,10 @@ class AddToQueue extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state, ownProps) => ({
   mopidy_connected: state.mopidy.connected,
-  albums: state.core.albums,
-  tracks: state.core.tracks,
-  view: state.core.view ? state.core.view : {},
+  playlist: (state.core.playlists[ownProps.match.params.uri] !== undefined ? state.core.playlists[ownProps.match.params.uri] : null),
+  playlists: state.core.playlists,
 });
 
 const mapDispatchToProps = (dispatch) => ({

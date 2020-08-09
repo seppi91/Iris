@@ -22,6 +22,7 @@ export default function reducer(ui = {}, action) {
       }
       return ui;
 
+
     case 'TOGGLE_SIDEBAR':
       var new_state = !ui.sidebar_open;
       if (typeof (action.new_state) !== 'undefined') new_state = action.new_state;
@@ -41,14 +42,20 @@ export default function reducer(ui = {}, action) {
     case 'INSTALL_PROMPT':
       return { ...ui, install_prompt: action.event };
 
+
       /**
          * Context menu
          * */
+
     case 'SHOW_CONTEXT_MENU':
       return { ...ui, context_menu: action.data };
 
     case 'HIDE_CONTEXT_MENU':
-      return { ...ui, context_menu: { ...ui.context_menu, closing: true } };
+      return {
+
+        ...ui,
+        context_menu: { ...ui.context_menu, closing: true },
+      };
 
     case 'REMOVE_CONTEXT_MENU':
       return { ...ui, context_menu: null };
@@ -57,14 +64,20 @@ export default function reducer(ui = {}, action) {
       return { ...ui, touch_context_menu: action.data };
 
     case 'HIDE_TOUCH_CONTEXT_MENU':
-      return { ...ui, touch_context_menu: { ...ui.touch_context_menu, closing: true } };
+      return {
+
+        ...ui,
+        touch_context_menu: { ...ui.touch_context_menu, closing: true },
+      };
 
     case 'REMOVE_TOUCH_CONTEXT_MENU':
       return { ...ui, touch_context_menu: null };
 
+
       /**
          * Dragging
          * */
+
     case 'DRAG_START':
       return {
         ...ui,
@@ -87,9 +100,11 @@ export default function reducer(ui = {}, action) {
     case 'DRAG_END':
       return { ...ui, dragger: false };
 
+
       /**
          * Modals
          * */
+
     case 'OPEN_MODAL':
       return { ...ui, modal: action.modal };
 
@@ -100,6 +115,7 @@ export default function reducer(ui = {}, action) {
       /**
          * Notifications
          * */
+
     case 'CREATE_NOTIFICATION':
       var notifications = { ...ui.notifications };
       notifications[action.notification.key] = action.notification;
@@ -136,12 +152,9 @@ export default function reducer(ui = {}, action) {
 
     case 'START_PROCESS':
     case 'UPDATE_PROCESS':
-      var processes = { ...(ui.processes || []) };
-      var last_run = processes[action.key];
-      var status = 'running';
-      if (last_run) {
-        var data = { ...last_run.data, ...action.data };
-        if (action.type === 'UPDATE_PROCESS') status = last_run.status;
+      var processes = { ...(ui.processes ? ui.processes : []) };
+      if (processes[action.key]) {
+        var data = { ...processes[action.key].data, ...action.data };
       } else {
         var { data } = action;
       }
@@ -149,8 +162,8 @@ export default function reducer(ui = {}, action) {
         key: action.key,
         content: action.content,
         description: action.description,
+        status: 'running',
         level: action.level,
-        status,
         data,
       };
       return { ...ui, processes };

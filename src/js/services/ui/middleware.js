@@ -3,6 +3,9 @@ import ReactGA from 'react-ga';
 const uiActions = require('./actions.js');
 
 const UIMiddleware = (function () {
+  /**
+     * The actual middleware inteceptor
+     * */
   return (store) => (next) => (action) => {
     switch (action.type) {
       case 'MOPIDY_STATE':
@@ -40,8 +43,8 @@ const UIMiddleware = (function () {
 
       case 'OPEN_MODAL':
         if (store.getState().ui.allow_reporting) {
-          ReactGA.event({ category: 'Modal', action: 'Opened', label: action.modal.name });
-        }
+	                ReactGA.event({ category: 'Modal', action: 'Opened', label: action.modal.name });
+	            }
         $('body').addClass('modal-open');
         store.dispatch(uiActions.hideContextMenu());
         store.dispatch(uiActions.hideTouchContextMenu());
@@ -84,7 +87,7 @@ const UIMiddleware = (function () {
 
         var notification = window.Notification || window.mozNotification || window.webkitNotification;
         if (typeof notification === 'undefined') return false;
-        if (typeof notification !== 'undefined') notification.requestPermission((permission) => { });
+        if (typeof notification !== 'undefined') notification.requestPermission((permission) => {});
 
         // handle nested data objects
         var data = {};
@@ -205,7 +208,6 @@ const UIMiddleware = (function () {
         store.dispatch({
           type: `${action.key}_CANCELLED`,
         });
-        store.dispatch(uiActions.closeProcess(action.key));
         next(action);
         break;
 
@@ -247,12 +249,6 @@ const UIMiddleware = (function () {
           200,
         );
         next(action);
-        break;
-
-      case 'SET_LANGUAGE':
-        const { language } = action;
-        window.language = language;
-        store.dispatch(uiActions.set({ language }));
         break;
 
       // This action is irrelevant to us, pass it on to the next middleware

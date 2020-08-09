@@ -22,8 +22,7 @@ import {
   uriType,
   titleCase,
 } from '../../util/helpers';
-import { arrayOf, indexToArray } from '../../util/arrays';
-import { i18n, I18n } from '../../locale';
+import { arrayOf } from '../../util/arrays';
 
 class Discover extends React.Component {
   constructor(props) {
@@ -151,25 +150,15 @@ class Discover extends React.Component {
   }
 
   componentDidMount() {
-    const {
-      uiActions: {
-        setWindowTitle,
-      },
-      match: {
-        params: {
-          seeds,
-        },
-      },
-    } = this.props;
+    this.props.uiActions.setWindowTitle('Discover');
 
-    setWindowTitle(i18n('discover.recommendations.title'));
-
-    if (seeds) {
-      this.handleURLSeeds();
+    // We have seeds provided in the URL
+    if (this.props.match.params.seeds) {
+      this.handleURLSeeds(this.props.match.params.seeds);
     }
   }
 
-  componentDidUpdate = ({
+  componentDiUpdate = ({
     match: {
       params: {
         seeds: prevSeeds,
@@ -183,98 +172,63 @@ class Discover extends React.Component {
         },
       },
     } = this.props;
-    if (prevSeeds !== seeds) this.handleURLSeeds();
+    if (prevSeeds !== seeds) this.handleURLSeeds(seeds);
   }
 
-  handleContextMenu = (e) => {
-    const {
-      recommendations: {
-        tracks_uris,
-      },
-      uiActions: {
-        showContextMenu,
-      },
-      tracks: tracksProp,
-    } = this.props;
+  handleContextMenu(e) {
+    var uri = 'iris:discover';
+    if (this.state.seeds) {
+      uri += ':';
+      for (var i = 0; i < this.state.seeds.length; i++) {
+        if (i > 0) {
+          uri += ',';
+        }
+        uri += this.state.seeds[i].split(':').join('_');
+      }
+    }
 
-    const tracks = indexToArray(tracksProp, tracks_uris);
+    const tracks = [];
+    if (this.props.recommendations.tracks_uris && this.props.tracks) {
+      for (var i = 0; i < this.props.recommendations.tracks_uris.length; i++) {
+        var uri = this.props.recommendations.tracks_uris[i];
+        if (this.props.tracks.hasOwnProperty(uri)) {
+          tracks.push(this.props.tracks[uri]);
+        }
+      }
+    }
 
-    showContextMenu({
+    const data = {
       e,
       context: 'track',
       items: tracks,
       uris: arrayOf('uri', tracks),
-      tracklist_uri: this.uri(),
-    });
+    };
+    this.props.uiActions.showContextMenu(data);
   }
 
-  handleURLSeeds = () => {
-    const {
-      spotifyActions: {
-        getArtist,
-        getTrack,
-      },
-      match: {
-        params: {
-          seeds: seedsProp,
-        },
-      },
-    } = this.props;
-
+  handleURLSeeds(seeds_string = this.props.match.params.seeds) {
     // Rejoin if we've had to uri-encode these as strings
     // We'd need to do this if our URL has been encoded so the whole URL can become
     // it's own URI (eg iris:discover:spotify_artist_1234) where we can't use ":"
-    const seeds = seedsProp.split('_').join(':').split(',');
+    const seeds = seeds_string.split('_').join(':').split(',');
 
     for (let i = 0; i < seeds.length; i++) {
       switch (uriType(seeds[i])) {
         case 'artist':
-          getArtist(seeds[i]);
+          this.props.spotifyActions.getArtist(seeds[i]);
           break;
+
         case 'track':
-          getTrack(seeds[i]);
-          break;
-        default:
+          this.props.spotifyActions.getTrack(seeds[i]);
           break;
       }
     }
 
-    this.setState(
-      { seeds },
-      () => this.getRecommendations(),
-    );
+    this.setState({ seeds });
+    this.getRecommendations(seeds);
   }
 
-  uri = () => {
-    const {
-      seeds,
-    } = this.state;
-
-    var uri = 'iris:discover';
-    if (seeds) {
-      uri += ':';
-      for (var i = 0; i < seeds.length; i++) {
-        if (i > 0) {
-          uri += ',';
-        }
-        uri += seeds[i].split(':').join('_');
-      }
-    }
-
-    return uri;
-  }
-
-  getRecommendations = () => {
-    const {
-      seeds,
-      tunabilities,
-    } = this.state;
-    const {
-      spotifyActions: {
-        getRecommendations: doGetRecommendations,
-      },
-    } = this.props;
-
+  getRecommendations(seeds = this.state.seeds, tunabilities = this.state.tunabilities) {
     if (seeds.length > 0) {
       const digested_tunabilities = {};
       for (const key in tunabilities) {
@@ -293,53 +247,37 @@ class Discover extends React.Component {
           digested_tunabilities[`${key}_min`] = min.toString();
         }
       }
-      doGetRecommendations(seeds, 50, digested_tunabilities);
+      this.props.spotifyActions.getRecommendations(seeds, 50, digested_tunabilities);
     }
   }
 
-  playTracks = () => {
-    const {
-      mopidyActions: {
-        playURIs,
-      },
-      recommendations: {
-        tracks_uris,
-      },
-    } = this.props;
-
-    playURIs(tracks_uris, this.uri());
+  playTracks() {
+    this.props.mopidyActions.playURIs(this.props.recommendations.tracks_uris);
   }
 
-  removeSeed = (index) => {
+  removeSeed(index) {
     const { seeds } = this.state;
     seeds.splice(index, 1);
     this.setState({ seeds });
   }
 
-  handleSelect = (e, uri) => {
+  handleSelect(e, uri) {
     const { seeds } = this.state;
     seeds.push(uri);
     this.setState({ seeds });
   }
 
-  renderSeeds = () => {
-    const {
-      tracks,
-      artists,
-    } = this.props;
-    const {
-      seeds,
-    } = this.state;
+  renderSeeds() {
     const seeds_objects = [];
 
-    if (seeds.length > 0) {
-      for (let i = 0; i < seeds.length; i++) {
-        const uri = seeds[i];
+    if (this.state.seeds.length > 0) {
+      for (let i = 0; i < this.state.seeds.length; i++) {
+        const uri = this.state.seeds[i];
 
         switch (uriType(uri)) {
           case 'track':
-            if (typeof (tracks[uri]) !== 'undefined') {
-              seeds_objects.push(tracks[uri]);
+            if (typeof (this.props.tracks[uri]) !== 'undefined') {
+              seeds_objects.push(this.props.tracks[uri]);
             } else {
               seeds_objects.push({
                 name: 'Loading...',
@@ -347,9 +285,10 @@ class Discover extends React.Component {
               });
             }
             break;
+
           case 'artist':
-            if (typeof (artists[uri]) !== 'undefined') {
-              seeds_objects.push(artists[uri]);
+            if (typeof (this.props.artists[uri]) !== 'undefined') {
+              seeds_objects.push(this.props.artists[uri]);
             } else {
               seeds_objects.push({
                 name: 'Loading...',
@@ -357,14 +296,13 @@ class Discover extends React.Component {
               });
             }
             break;
+
           case 'genre':
             var name = getFromUri('genreid', uri);
             seeds_objects.push({
               name: (name.charAt(0).toUpperCase() + name.slice(1)).replace('-', ' '),
               uri,
             });
-            break;
-          default:
             break;
         }
       }
@@ -373,26 +311,22 @@ class Discover extends React.Component {
     return (
       <div className="seeds">
         {
-          seeds_objects.map((seed, index) => {
-            const type = uriType(seed.uri);
-            let images = null;
-            if (seed.images) {
-              if (type === 'artist') {
-                if (seed.images.length > 0) {
-                  images = seed.images[0];
-                }
-              } else {
-                images = seed.images;
-              }
-            }
+					seeds_objects.map((seed, index) => {
+					  const type = uriType(seed.uri);
+					  let images = null;
+					  if (seed.images) {
+					    if (type == 'artist') {
+					      if (seed.images.length > 0) {
+					        images = seed.images[0];
+					      }
+					    } else {
+					      images = seed.images;
+					    }
+					  }
 
 					  return (
               <div className={`seed${seed.images ? ' has-thumbnail' : ''}`} key={seed.uri}>
-                {images && (
-                  <URILink className="thumbnail-wrapper" type={type} uri={seed.uri}>
-                    <Thumbnail images={images} circle={seed.type === 'artist'} size="small" />
-                  </URILink>
-                )}
+                {images ? <URILink className="thumbnail-wrapper" type={type} uri={seed.uri}><Thumbnail images={images} circle={seed.type == 'artist'} size="small" /></URILink> : null}
                 <div className="seed__details">
                   <div className="seed__label">
                     <span className="seed__label__text">{titleCase(type)}</span>
@@ -408,19 +342,19 @@ class Discover extends React.Component {
     );
   }
 
-  setTunability = (name, value) => {
+  setTunability(name, value) {
     const { tunabilities } = this.state;
     tunabilities[name].value = value;
     this.setState({ tunabilities });
   }
 
-  toggleTunability = (name) => {
+  toggleTunability(name) {
     const { tunabilities } = this.state;
     tunabilities[name].enabled = !tunabilities[name].enabled;
     this.setState({ tunabilities });
   }
 
-  renderTunabilities = () => {
+  renderTunabilities() {
     const addable_tunabilities = [];
     const enabled_tunabilities = [];
     for (const key in this.state.tunabilities) {
@@ -448,7 +382,7 @@ class Discover extends React.Component {
           <div className="field tunability range" key={tunability.name}>
             <div className="tunability__label">
               {titleCase(tunability.name)}
-              <span className="remove" onClick={() => this.toggleTunability(tunability.name)}>
+              <span className="remove" onClick={(e) => this.toggleTunability(tunability.name)}>
                 <Icon name="close" />
               </span>
             </div>
@@ -467,48 +401,38 @@ class Discover extends React.Component {
     );
   }
 
-  renderResults = () => {
-    const {
-      recommendations: {
-        tracks_uris,
-        albums_uris,
-        artists_uris,
-      } = {},
-      tracks: tracksProp,
-      artists: artistsProp,
-      albums: albumsProp,
-    } = this.props;
-
-    if (!albums_uris === undefined || artists_uris === undefined) {
+  renderResults() {
+    // Results not in
+    if (!this.props.recommendations || this.props.recommendations.albums_uris === undefined || this.props.recommendations.artists_uris === undefined) {
       return <div className="content-wrapper recommendations-results" />;
     }
 
     const tracks = [];
-    if (tracks_uris && tracksProp) {
-      for (var i = 0; i < tracks_uris.length; i++) {
-        var uri = tracks_uris[i];
-        if (tracksProp.hasOwnProperty(uri)) {
-          tracks.push(tracksProp[uri]);
+    if (this.props.recommendations.tracks_uris && this.props.tracks) {
+      for (var i = 0; i < this.props.recommendations.tracks_uris.length; i++) {
+        var uri = this.props.recommendations.tracks_uris[i];
+        if (this.props.tracks.hasOwnProperty(uri)) {
+          tracks.push(this.props.tracks[uri]);
         }
       }
     }
 
     const artists = [];
-    if (artists_uris && artistsProp) {
-      for (var i = 0; i < artists_uris.length; i++) {
-        var uri = artists_uris[i];
-        if (artistsProp.hasOwnProperty(uri)) {
-          artists.push(artistsProp[uri]);
+    if (this.props.recommendations.artists_uris && this.props.artists) {
+      for (var i = 0; i < this.props.recommendations.artists_uris.length; i++) {
+        var uri = this.props.recommendations.artists_uris[i];
+        if (this.props.artists.hasOwnProperty(uri)) {
+          artists.push(this.props.artists[uri]);
         }
       }
     }
 
     const albums = [];
-    if (albums_uris && albumsProp) {
-      for (var i = 0; i < albums_uris.length; i++) {
-        var uri = albums_uris[i];
-        if (albumsProp.hasOwnProperty(uri)) {
-          albums.push(albumsProp[uri]);
+    if (this.props.recommendations.albums_uris && this.props.albums) {
+      for (var i = 0; i < this.props.recommendations.albums_uris.length; i++) {
+        var uri = this.props.recommendations.albums_uris[i];
+        if (this.props.albums.hasOwnProperty(uri)) {
+          albums.push(this.props.albums[uri]);
         }
       }
     }
@@ -518,33 +442,42 @@ class Discover extends React.Component {
       return null;
     }
 
+    var uri = 'iris:discover';
+    if (this.state.seeds) {
+      uri += ':';
+      for (var i = 0; i < this.state.seeds.length; i++) {
+        if (i > 0) {
+          uri += ',';
+        }
+        uri += this.state.seeds[i].split(':').join('_');
+      }
+    }
+
     return (
       <div className="content-wrapper recommendations-results">
 
         <section className="col col--w70 tracks">
           <h4>
-            <I18n path="discover.recommendations.tracks" />
+						Tracks
             <div className="pull-right">
-              <ContextMenuTrigger onTrigger={this.handleContextMenu} />
-              <button className="button button--primary" onClick={this.playTracks} type="button">
-                <I18n path="actions.play_all" />
-              </button>
+              <ContextMenuTrigger onTrigger={(e) => this.handleContextMenu(e)} />
+              <button className="button button--primary" onClick={(e) => this.playTracks(e)}>Play all</button>
             </div>
           </h4>
-          <TrackList className="discover-track-list" uri={this.uri()} tracks={tracks} />
+          <TrackList className="discover-track-list" uri={uri} tracks={tracks} />
         </section>
 
         <div className="col col--w5" />
 
         <div className="col col--w25 others">
           <section>
-            <h4><I18n path="discover.recommendations.artists" /></h4>
-            <RelatedArtists artists={artists} uiActions={uiActions} />
+            <h4>Artists</h4>
+            <RelatedArtists artists={artists} uiActions={this.props.uiActions} />
           </section>
           <br />
           <br />
           <section>
-            <h4><I18n path="discover.recommendations.albums" /></h4>
+            <h4>Albums</h4>
             <AlbumGrid className="grid--mini" albums={albums} />
           </section>
         </div>
@@ -553,22 +486,14 @@ class Discover extends React.Component {
     );
   }
 
-  render = () => {
-    const {
-      load_queue,
-      theme,
-    } = this.props;
-    const {
-      tunabilities,
-      seeds,
-    } = this.state;
-  
-    const is_loading = isLoading(load_queue, ['spotify_recommendations']);
+  render() {
+    const is_loading = isLoading(this.props.load_queue, ['spotify_recommendations']);
     const addable_tunabilities = [];
     for (const key in this.state.tunabilities) {
-      if (tunabilities.hasOwnProperty(key)) {
+      if (this.state.tunabilities.hasOwnProperty(key)) {
         const tunability = {
-          ...tunabilities[key],
+
+          ...this.state.tunabilities[key],
           name: key,
         };
 
@@ -584,39 +509,30 @@ class Discover extends React.Component {
     return (
       <div className="view discover-view preserve-3d">
         <div className="intro preserve-3d">
-          {theme === 'dark' && <Parallax image="/iris/assets/backgrounds/discover.jpg" />}
+
+          {this.props.theme == 'dark' && <Parallax image="/iris/assets/backgrounds/discover.jpg" />}
+
           <div className="intro__liner">
-            <h1><I18n path="discover.recommendations.body_title" /></h1>
-            <h2><I18n path="discover.recommendations.body_subtitle" /></h2>
+            <h1>Explore new music</h1>
+            <h2>Add seeds and musical properties below to build your sound</h2>
             <div className="intro__parameters">
+
               {this.renderSeeds()}
               {this.renderTunabilities()}
-              {seeds.length > 5 && (
-                <p className="message error">
-                  <I18n path="discover.recommendations.too_many_seeds" />
-                </p>
-              )}
+              {this.state.seeds.length > 5 ? <p className="message error">Too many seeds! You can use up to a total of 5 seed tracks, artists and genres.</p> : null}
+
             </div>
             <div className="intro__actions">
+
               <AddSeedField onSelect={(e, uri) => this.handleSelect(e, uri)} />
-              <DropdownField
-                className="add-properties"
-                name="Properties"
-                options={addable_tunabilities}
-                no_status_icon
-                button="default"
-                handleChange={this.toggleTunability}
-              />
+              <DropdownField className="add-properties" name="Properties" options={addable_tunabilities} no_status_icon button="default" handleChange={(val) => { this.toggleTunability(val); }} />
               <div className="intro__actions__separator" />
-              <span
-                className={`submit button button--primary button--large${is_loading ? ' button--working' : ''}`}
-                onClick={this.getRecommendations}
-              >
+              <span className={`submit button button--primary button--large${is_loading ? ' button--working' : ''}`} onClick={(e) => this.getRecommendations()}>
                 <Icon name="explore" />
-                <I18n path="discover.recommendations.find_recommendations" afterContent>
-                  {' '}
-                </I18n>
+&nbsp;
+								Find recommendations
               </span>
+
             </div>
           </div>
 
@@ -629,7 +545,7 @@ class Discover extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state, ownProps) => ({
   theme: state.ui.theme,
   albums: state.core.albums,
   artists: state.core.artists,

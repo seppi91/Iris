@@ -15,7 +15,6 @@ import * as uiActions from '../../services/ui/actions';
 import * as mopidyActions from '../../services/mopidy/actions';
 import * as spotifyActions from '../../services/spotify/actions';
 import { applyFilter, removeDuplicates, sortItems } from '../../util/arrays';
-import { I18n, i18n } from '../../locale';
 
 class LibraryPlaylists extends React.Component {
   constructor(props) {
@@ -37,7 +36,7 @@ class LibraryPlaylists extends React.Component {
       });
     }
 
-    this.props.uiActions.setWindowTitle(i18n('library.playlists.title'));
+    this.props.uiActions.setWindowTitle('Playlists');
 
     if (!this.props.mopidy_library_playlists && this.props.mopidy_connected && (this.props.source == 'all' || this.props.source == 'local')) {
       this.props.mopidyActions.getLibraryPlaylists();
@@ -183,60 +182,60 @@ class LibraryPlaylists extends React.Component {
     const source_options = [
       {
         value: 'all',
-        label: i18n('fields.filters.all'),
+        label: 'All',
       },
       {
         value: 'local',
-        label: i18n('services.mopidy.local'),
+        label: 'Local',
       },
     ];
 
     if (this.props.spotify_available) {
       source_options.push({
         value: 'spotify',
-        label: i18n('services.spotify.title'),
+        label: 'Spotify',
       });
     }
 
     const view_options = [
       {
         value: 'thumbnails',
-        label: i18n('fields.filters.thumbnails'),
+        label: 'Thumbnails',
       },
       {
         value: 'list',
-        label: i18n('fields.filters.list'),
+        label: 'List',
       },
     ];
 
     const sort_options = [
       {
         value: null,
-        label: i18n('fields.filters.as_loaded'),
+        label: 'As loaded',
       },
       {
         value: 'name',
-        label: i18n('fields.filters.name'),
+        label: 'Name',
       },
       {
         value: 'last_modified',
-        label: i18n('fields.filters.updated'),
+        label: 'Updated',
       },
       {
         value: 'can_edit',
-        label: i18n('fields.filters.editable'),
+        label: 'Editable',
       },
       {
         value: 'owner.id',
-        label: i18n('fields.filters.owner'),
+        label: 'Owner',
       },
       {
         value: 'tracks_total',
-        label: i18n('fields.filters.tracks'),
+        label: 'Tracks',
       },
       {
         value: 'source',
-        label: i18n('fields.filters.source'),
+        label: 'Source',
       },
     ];
 
@@ -249,7 +248,7 @@ class LibraryPlaylists extends React.Component {
         />
         <DropdownField
           icon="swap_vert"
-          name={i18n('fields.sort')}
+          name="Sort"
           value={this.props.sort}
           valueAsLabel
           options={sort_options}
@@ -258,7 +257,7 @@ class LibraryPlaylists extends React.Component {
         />
         <DropdownField
           icon="visibility"
-          name={i18n('fields.view')}
+          name="View"
           valueAsLabel
           value={this.props.view}
           options={view_options}
@@ -266,7 +265,7 @@ class LibraryPlaylists extends React.Component {
         />
         <DropdownField
           icon="cloud"
-          name={i18n('fields.source')}
+          name="Source"
           valueAsLabel
           value={this.props.source}
           options={source_options}
@@ -274,7 +273,7 @@ class LibraryPlaylists extends React.Component {
         />
         <Link className="button button--no-hover" to="/playlist/create">
           <Icon name="add_box" />
-          <I18n path="actions.add" />
+          New
         </Link>
       </span>
     );
@@ -283,7 +282,7 @@ class LibraryPlaylists extends React.Component {
       <div className="view library-playlists-view">
         <Header options={options} uiActions={this.props.uiActions}>
           <Icon name="queue_music" type="material" />
-          <I18n path="library.playlists.title" />
+					My playlists
         </Header>
         { this.renderView() }
       </div>

@@ -251,19 +251,7 @@ const SpotifyMiddleware = (function () {
         break;
 
       case 'SPOTIFY_GET_LIBRARY_PLAYLISTS_PROCESSOR':
-        const playlistProcessor = store.getState().ui.processes.SPOTIFY_GET_LIBRARY_PLAYLISTS_PROCESSOR || {};
-        switch (playlistProcessor.status) {
-          case 'cancelling':
-            store.dispatch(uiActions.processCancelled('SPOTIFY_GET_LIBRARY_PLAYLISTS_PROCESSOR'));
-            break;
-
-          case 'cancelled':
-            break;
-
-          default:
-            store.dispatch(spotifyActions.getLibraryPlaylistsProcessor(action.data));
-            break;
-        }
+        store.dispatch(spotifyActions.getLibraryPlaylistsProcessor(action.data));
         break;
 
       case 'SPOTIFY_LIBRARY_PLAYLISTS_LOADED':
@@ -297,19 +285,7 @@ const SpotifyMiddleware = (function () {
         break;
 
       case 'SPOTIFY_GET_LIBRARY_ARTISTS_PROCESSOR':
-        const artistsProcessor = store.getState().ui.processes.SPOTIFY_GET_LIBRARY_ARTISTS_PROCESSOR || {};
-        switch (artistsProcessor.status) {
-          case 'cancelling':
-            store.dispatch(uiActions.processCancelled('SPOTIFY_GET_LIBRARY_ARTISTS_PROCESSOR'));
-            break;
-
-          case 'cancelled':
-            break;
-
-          default:
-            store.dispatch(spotifyActions.getLibraryArtistsProcessor(action.data));
-            break;
-        }
+        store.dispatch(spotifyActions.getLibraryArtistsProcessor(action.data));
         break;
 
       case 'SPOTIFY_LIBRARY_ARTISTS_LOADED':
@@ -336,19 +312,7 @@ const SpotifyMiddleware = (function () {
         break;
 
       case 'SPOTIFY_GET_LIBRARY_ALBUMS_PROCESSOR':
-        const albumsProcessor = store.getState().ui.processes.SPOTIFY_GET_LIBRARY_ALBUMS_PROCESSOR || {};
-        switch (albumsProcessor.status) {
-          case 'cancelling':
-            store.dispatch(uiActions.processCancelled('SPOTIFY_GET_LIBRARY_ALBUMS_PROCESSOR'));
-            break;
-
-          case 'cancelled':
-            break;
-
-          default:
-            store.dispatch(spotifyActions.getLibraryAlbumsProcessor(action.data));
-            break;
-        }
+        store.dispatch(spotifyActions.getLibraryAlbumsProcessor(action.data));
         break;
 
       case 'SPOTIFY_GET_LIBRARY_TRACKS_AND_PLAY_PROCESSOR':

@@ -5,35 +5,26 @@ import { bindActionCreators } from 'redux';
 import * as uiActions from '../../services/ui/actions';
 import * as spotifyActions from '../../services/spotify/actions';
 import { isLoading, getFromUri } from '../../util/helpers';
-import { i18n } from '../../locale';
 
 class FollowButton extends React.Component {
-  remove = () => {
+  remove() {
     const { spotifyActions: actions, uri } = this.props;
     actions.following(uri, 'DELETE');
   }
 
-  add = () => {
+  add() {
     const { spotifyActions: actions, uri } = this.props;
     actions.following(uri, 'PUT');
   }
 
-  unauthorized = () => {
-    const { uiActions: { createNotification } } = this.props;
-
-    createNotification({
-      content: i18n('errors.authorization_required', { provider: i18n('services.spotify.title') }),
-      level: 'warning',
-    });
-  }
-
-  render = () => {
+  render() {
     const {
       uri,
       addText,
       removeText,
       spotify_authorized,
       is_following,
+      uiActions: actions,
       load_queue,
     } = this.props;
 
@@ -56,9 +47,9 @@ class FollowButton extends React.Component {
         <button
           type="button"
           className={`${className} button--disabled`}
-          onClick={this.unauthorized}
+          onClick={() => actions.createNotification({ content: 'You must authorize Spotify first', level: 'warning' })}
         >
-          {addText || i18n('actions.add_to_library')}
+          {addText}
         </button>
       );
     } if (is_following === true) {
@@ -66,9 +57,9 @@ class FollowButton extends React.Component {
         <button
           type="button"
           className={`${className} button--destructive`}
-          onClick={this.remove}
+          onClick={() => this.remove()}
         >
-          {removeText || i18n('actions.remove_from_library')}
+          {removeText}
         </button>
       );
     }
@@ -76,15 +67,15 @@ class FollowButton extends React.Component {
       <button
         type="button"
         className={`${className} button--default`}
-        onClick={this.add}
+        onClick={() => this.add()}
       >
-        {addText || i18n('actions.add_to_library')}
+        {addText}
       </button>
     );
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state, ownProps) => ({
   load_queue: state.ui.load_queue,
   spotify_authorized: state.spotify.authorization,
 });

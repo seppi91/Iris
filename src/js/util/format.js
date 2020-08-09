@@ -696,6 +696,7 @@ const formatGroup = function (data) {
     'id',
     'name',
     'mute',
+    'volume',
     'stream_id',
     'clients_ids',
   ];

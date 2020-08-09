@@ -17,7 +17,6 @@ import {
   uriSource,
 } from '../../util/helpers';
 import { sortItems, applyFilter } from '../../util/arrays';
-import { I18n, i18n } from '../../locale';
 
 class LibraryArtists extends React.Component {
   constructor(props) {
@@ -39,7 +38,7 @@ class LibraryArtists extends React.Component {
       });
     }
 
-    this.props.uiActions.setWindowTitle(i18n('library.artists.title'));
+    this.props.uiActions.setWindowTitle('Artists');
 
     if (!this.props.mopidy_library_artists && this.props.mopidy_connected && (this.props.source == 'all' || this.props.source == 'local')) {
       this.props.mopidyActions.getLibraryArtists();
@@ -225,55 +224,55 @@ class LibraryArtists extends React.Component {
     const source_options = [
       {
         value: 'all',
-        label: i18n('fields.filters.all'),
+        label: 'All',
       },
       {
         value: 'local',
-        label: i18n('services.mopidy.local'),
+        label: 'Local',
       },
     ];
 
     if (this.props.spotify_available) {
       source_options.push({
         value: 'spotify',
-        label: i18n('services.spotify.title'),
+        label: 'Spotify',
       });
     }
 
     if (this.props.google_available) {
       source_options.push({
         value: 'google',
-        label: i18n('services.google.title'),
+        label: 'Google',
       });
     }
 
     const view_options = [
       {
+        label: 'Thumbnails',
         value: 'thumbnails',
-        label: i18n('fields.filters.thumbnails'),
       },
       {
+        label: 'List',
         value: 'list',
-        label: i18n('fields.filters.list'),
       },
     ];
 
     const sort_options = [
       {
         value: null,
-        label: i18n('fields.filters.as_loaded'),
+        label: 'As loaded',
       },
       {
         value: 'name',
-        label: i18n('fields.filters.name'),
+        label: 'Name',
       },
       {
         value: 'followers',
-        label: i18n('fields.filters.followers'),
+        label: 'Followers',
       },
       {
         value: 'popularity',
-        label: i18n('fields.filters.popularity'),
+        label: 'Popularity',
       },
     ];
 
@@ -286,7 +285,7 @@ class LibraryArtists extends React.Component {
         />
         <DropdownField
           icon="swap_vert"
-          name={i18n('fields.sort')}
+          name="Sort"
           value={this.props.sort}
           valueAsLabel
           options={sort_options}
@@ -295,7 +294,7 @@ class LibraryArtists extends React.Component {
         />
         <DropdownField
           icon="visibility"
-          name={i18n('fields.view')}
+          name="View"
           value={this.props.view}
           valueAsLabel
           options={view_options}
@@ -303,7 +302,7 @@ class LibraryArtists extends React.Component {
         />
         <DropdownField
           icon="cloud"
-          name={i18n('fields.source')}
+          name="Source"
           value={this.props.source}
           valueAsLabel
           options={source_options}
@@ -316,7 +315,7 @@ class LibraryArtists extends React.Component {
       <div className="view library-artists-view">
         <Header options={options} uiActions={this.props.uiActions}>
           <Icon name="recent_actors" type="material" />
-					<I18n path="library.artists.title" />
+					My artists
         </Header>
         {this.renderView()}
       </div>

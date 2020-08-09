@@ -11,53 +11,43 @@ import * as spotifyActions from '../../services/spotify/actions';
 import {
   isLoading,
 } from '../../util/helpers';
-import { i18n, I18n } from '../../locale';
-import { indexToArray } from '../../util/arrays';
 
 class DiscoverCategories extends React.Component {
   componentDidMount() {
-    const {
-      categories,
-      spotifyActions: {
-        getCategories,
-      },
-      uiActions: {
-        setWindowTitle,
-      },
-    } = this.props;
-
     // Check for an empty category index, or where we've only got one loaded
     // This would be the case if you've refreshed from within a category and only loaded
     // the single record.
-    if (!categories || Object.keys(categories).length <= 1) {
-      getCategories();
+    if (!this.props.categories || Object.keys(this.props.categories).length <= 1) {
+      this.props.spotifyActions.getCategories();
     }
-    setWindowTitle(i18n('discover.categories.title'));
+    this.props.uiActions.setWindowTitle('Genre / Mood');
   }
 
-  render = () => {
-    const {
-      load_queue,
-      categories: categoriesProp,
-      uiActions,
-    } = this.props;
-
-    if (isLoading(load_queue, ['spotify_browse/categories'])) {
+  render() {
+    if (isLoading(this.props.load_queue, ['spotify_browse/categories'])) {
       return (
         <div className="view discover-categories-view">
-          <Header icon="grid" title={i18n('discover.categories.title')} />
+          <Header icon="grid" title="Genre / Mood" />
           <Loader body loading />
         </div>
       );
     }
 
-    const categories = indexToArray(categoriesProp);
+    // convert categories object into simple array
+    const categories = [];
+    if (this.props.categories) {
+      for (const key in this.props.categories) {
+        if (this.props.categories.hasOwnProperty(key)) {
+          categories.push(this.props.categories[key]);
+        }
+      }
+    }
 
     return (
       <div className="view discover-categories-view">
-        <Header uiActions={uiActions}>
+        <Header uiActions={this.props.uiActions}>
           <Icon name="mood" type="material" />
-          <I18n path="discover.categories.title" />
+					Genre / Mood
         </Header>
         <section className="content-wrapper grid-wrapper">
           <CategoryGrid categories={categories} />
@@ -67,7 +57,14 @@ class DiscoverCategories extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+
+/**
+ * Export our component
+ *
+ * We also integrate our global store, using connect()
+ * */
+
+const mapStateToProps = (state, ownProps) => ({
   categories: state.spotify.categories,
   load_queue: state.ui.load_queue,
 });
