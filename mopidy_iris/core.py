@@ -13,7 +13,6 @@ import pickle
 from pkg_resources import parse_version
 from tornado.escape import json_encode
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
-from pathlib import Path
 
 from . import Extension
 from .system import IrisSystemThread
@@ -72,7 +71,7 @@ class IrisCore(pykka.ThreadingActor):
     # @return Dict
     ##
     def load_from_file(self, name):
-        file_path = Path(self.config["iris"]["data_dir"]) / ("%s.pkl" % name)
+        file_path = Extension.get_data_dir(self.config) / ("%s.pkl" % name)
 
         try:
             with file_path.open("rb") as f:
@@ -90,7 +89,7 @@ class IrisCore(pykka.ThreadingActor):
     # @return void
     ##
     def save_to_file(self, dict, name):
-        file_path = Path(self.config["iris"]["data_dir"]) / ("%s.pkl" % name)
+        file_path = Extension.get_data_dir(self.config) / ("%s.pkl" % name)
 
         try:
             with file_path.open("wb") as f:

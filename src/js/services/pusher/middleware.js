@@ -274,7 +274,7 @@ const PusherMiddleware = (function () {
         };
 
         socket.onerror = (e) => {
-          if (socket.readyState == 1) {
+          if (socket.readyState === 1) {
             store.dispatch(coreActions.handleException(
               'Pusher websocket error',
               e,
@@ -340,7 +340,7 @@ const PusherMiddleware = (function () {
         request(store, 'send_message', action.data)
           .then(
             (response) => {
-              store.dispatch(uiActions.createNotification({ level: 'warning', content: 'Message delivered' }));
+              store.dispatch(uiActions.createNotification({ content: 'Message delivered' }));
             },
             (error) => {
               store.dispatch(coreActions.handleException(

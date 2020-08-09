@@ -1,21 +1,19 @@
 
 import React from 'react';
-import { applyFilter } from '../util/arrays';
 import VolumeControl from './Fields/VolumeControl';
 import MuteControl from './Fields/MuteControl';
 import LatencyControl from './Fields/LatencyControl';
 import TextField from './Fields/TextField';
 import SelectField from './Fields/SelectField';
+import { I18n, i18n } from '../locale';
 
-const SnapcastClients = ({ actions, group, groups, show_disconnected_clients }) => {
-  if (!show_disconnected_clients && group.clients) {
-    var clients = applyFilter('connected', true, group.clients);
-  } else {
-    var { clients } = group;
-  }
-
+const SnapcastClients = ({ actions, group, clients, groups }) => {
   if (!clients || clients.length <= 0) {
-    return <p className="no-results">No connected clients</p>;
+    return (
+      <p className="no-results">
+        <I18n path="snapcast.no_connected_clients" />
+      </p>
+    );
   }
 
   return (
@@ -33,7 +31,7 @@ const SnapcastClients = ({ actions, group, groups, show_disconnected_clients }) 
             <div className={class_name} key={client.id}>
               <label className="field field--condensed">
                 <div className="name">
-                  Name
+                  <I18n path="snapcast.name" />
                   {!client.connected && ' (disconnected)'}
                 </div>
                 <div className="input">
@@ -46,7 +44,7 @@ const SnapcastClients = ({ actions, group, groups, show_disconnected_clients }) 
               </label>
               <label className="field dropdown field--condensed">
                 <div className="name">
-                  Group
+                  <I18n path="snapcast.group" />
                 </div>
                 <div className="input">
                   <SelectField
@@ -61,7 +59,7 @@ const SnapcastClients = ({ actions, group, groups, show_disconnected_clients }) 
                       {
                         key: `client_${client.id}_new_group`,
                         value: group.id,
-                        label: '+ New group',
+                        label: i18n('snapcast.new_group'),
                       },
                     ]}
                     autosave
@@ -70,7 +68,7 @@ const SnapcastClients = ({ actions, group, groups, show_disconnected_clients }) 
               </label>
               <div className="snapcast__client__latency field field--condensed">
                 <div className="name">
-                  Latency
+                  <I18n path="snapcast.latency" />
                 </div>
                 <div className="input">
                   <LatencyControl
