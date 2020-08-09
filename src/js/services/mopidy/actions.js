@@ -455,11 +455,16 @@ export function getDirectory(uri) {
   };
 }
 
-export function getTrack(uri) {
+export function getTracks(uris, get_images) {
   return {
-    type: 'MOPIDY_GET_TRACK',
-    uri,
+    type: 'MOPIDY_GET_TRACKS',
+    uris,
+    get_images,
   };
+}
+
+export function getTrack(uri) {
+  return getTracks([uri], true);
 }
 
 export function getLibraryArtists(uri = null) {
@@ -530,6 +535,13 @@ export function cancelProcessor(processor) {
   };
 }
 
+export function view_getRandomTracks(limit = 100) {
+  return {
+    type: 'VIEW__GET_RANDOM_TRACKS',
+    limit,
+  };
+}
+
 
 /**
  * Searching
@@ -541,11 +553,10 @@ export function clearSearchResults() {
   };
 }
 
-export function getSearchResults(context, query, limit = 100) {
+export function getSearchResults(type, term, limit = 100) {
   return {
     type: 'MOPIDY_GET_SEARCH_RESULTS',
-    context,
-    query,
+    query: { type, term },
     limit,
   };
 }
