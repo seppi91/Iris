@@ -1,6 +1,5 @@
 
 import React, { memo } from 'react';
-import { I18n } from '../locale';
 
 export default memo((props) => {
   if (props.popularity === undefined || props.popularity === null) {
@@ -17,7 +16,8 @@ export default memo((props) => {
         <span className={`bar${props.popularity > 90 ? ' filled' : ''}`} />
       </span>
       <span className="popularity-value">
-        <I18n path="specs.popularity" percent={props.popularity} />
+        {props.popularity}
+% popularity
       </span>
     </span>
   );

@@ -9,12 +9,10 @@ import * as uiActions from '../services/ui/actions';
 import * as pusherActions from '../services/pusher/actions';
 import * as spotifyActions from '../services/spotify/actions';
 import * as mopidyActions from '../services/mopidy/actions';
-import { i18n, I18n } from '../locale';
 
 class QueueHistory extends React.Component {
   componentDidMount() {
-    const { uiActions: { setWindowTitle } } = this.props;
-    setWindowTitle(i18n('queue_history.title'));
+    this.props.uiActions.setWindowTitle('Queue history');
     this.loadHistory();
   }
 
@@ -23,48 +21,42 @@ class QueueHistory extends React.Component {
     if (!prev_mopidy_connected && mopidy_connected) this.loadHistory();
   }
 
-  loadHistory = (props = this.props) => {
-    const {
-      mopidyActions: { getQueueHistory },
-    } = this.props;
-
+  loadHistory(props = this.props) {
     if (props.mopidy_connected) {
-      getQueueHistory();
+      this.props.mopidyActions.getQueueHistory();
     }
   }
 
-  onBack = () => {
-    const { history: { push } } = this.props;
-    push('/queue');
-  }
-
-  render = () => {
-    const {
-      queue_history,
-      tracks: tracksProp,
-      uiActions,
-    } = this.props;
-
+  render() {
     const options = (
-      <a className="button button--no-hover" onClick={this.onBack}>
-        <I18n path="actions.back">
-          <Icon name="keyboard_backspace" />
-          {' '}
-        </I18n>
+      <a className="button button--no-hover" onClick={(e) => this.props.history.push('/queue')}>
+        <Icon name="keyboard_backspace" />
+&nbsp;
+				Back
       </a>
     );
 
-    const tracks = queue_history.map((item) => ({
-      ...item,
-      ...(tracksProp[item.uri] || {}),
-    }));
+    const tracks = [];
+    for (let i = 0; i < this.props.queue_history.length; i++) {
+      let track = { ...this.props.queue_history[i] };
+
+      // We have the track in the index, so merge the track objects
+      if (this.props.tracks[track.uri] !== undefined) {
+        track = {
+
+          ...track,
+          ...this.props.tracks[track.uri],
+        };
+      }
+
+      tracks.push(track);
+    }
 
     return (
       <div className="view queue-history-view">
-        <Header options={options} uiActions={uiActions}>
-          <I18n path="queue_history.title">
-            <Icon name="play_arrow" type="material" />
-          </I18n>
+        <Header options={options} uiActions={this.props.uiActions}>
+          <Icon name="play_arrow" type="material" />
+					Playback history
         </Header>
         <section className="content-wrapper">
           <TrackList
@@ -81,7 +73,14 @@ class QueueHistory extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+
+/**
+ * Export our component
+ *
+ * We also integrate our global store, using connect()
+ * */
+
+const mapStateToProps = (state, ownProps) => ({
   mopidy_connected: state.mopidy.connected,
   tracks: (state.core.tracks ? state.core.tracks : {}),
   queue_history: (state.mopidy.queue_history ? state.mopidy.queue_history : []),

@@ -3,17 +3,18 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import ErrorMessage from '../components/ErrorMessage';
+import Header from '../components/Header';
 import TrackList from '../components/TrackList';
 import Thumbnail from '../components/Thumbnail';
+import Parallax from '../components/Parallax';
 import LinksSentence from '../components/LinksSentence';
 import Loader from '../components/Loader';
 import FollowButton from '../components/Fields/FollowButton';
-import { nice_number } from '../components/NiceNumber';
-import { Dater } from '../components/Dater';
+import NiceNumber from '../components/NiceNumber';
+import Dater from '../components/Dater';
 import LazyLoadListener from '../components/LazyLoadListener';
 import ContextMenuTrigger from '../components/ContextMenuTrigger';
 import Icon from '../components/Icon';
-import { i18n, I18n } from '../locale';
 import * as coreActions from '../services/core/actions';
 import * as uiActions from '../services/ui/actions';
 import * as mopidyActions from '../services/mopidy/actions';
@@ -99,21 +100,24 @@ export class Album extends React.Component {
   }
 
   setWindowTitle = (album = this.props.album) => {
-    const { uiActions: { setWindowTitle }, artists } = this.props;
+    const { uiActions: { setWindowTitle } } = this.props;
 
     if (album) {
-      let artistNames = [];
+      let artists = '';
       if (album.artists_uris && artists) {
         for (let i = 0; i < album.artists_uris.length; i++) {
           const uri = album.artists_uris[i];
           if (artists.hasOwnProperty(uri)) {
-            artistNames.push(artists[uri].name);
+            if (artists != '') {
+              artists += ', ';
+            }
+            artists += artists[uri].name;
           }
         }
       }
-      setWindowTitle(i18n('album.title_window', { name: album.name, artist: artistNames.join() }));
+      setWindowTitle(`${album.name} by ${artists} (album)`);
     } else {
-      setWindowTitle(i18n('album.title'));
+      setWindowTitle('Album');
     }
   }
 
@@ -174,7 +178,6 @@ export class Album extends React.Component {
       tracks,
       artists,
       load_queue,
-      slim_mode,
     } = this.props;
 
     if (!albumProp) {
@@ -188,7 +191,7 @@ export class Album extends React.Component {
       return (
         <ErrorMessage type="not-found" title="Not found">
           <p>
-            {i18n('errors.uri_not_found', { uri: encodeURIComponent(uri) })}
+            {`Could not find album with URI "${encodeURIComponent(uri)}"`}
           </p>
         </ErrorMessage>
       );
@@ -196,11 +199,15 @@ export class Album extends React.Component {
 
     const album = collate(albumProp, { tracks, artists });
 
-    const is_loading_tracks = (
+    if (
       !album.tracks_uris
       || (album.tracks_uris && !album.tracks)
       || album.tracks_uris.length !== album.tracks.length
-    );
+    ) {
+      var is_loading_tracks = true;
+    } else {
+      var is_loading_tracks = false;
+    }
 
     return (
       <div className="view album-view content-wrapper preserve-3d">
@@ -212,7 +219,7 @@ export class Album extends React.Component {
           <h1>{album.name}</h1>
 
           <ul className="details">
-            {!slim_mode ? (
+            {!this.props.slim_mode ? (
               <li className="source">
                 <Icon type="fontawesome" name={sourceIcon(album.uri)} />
               </li>
@@ -229,48 +236,47 @@ export class Album extends React.Component {
             ) : null}
             {album.tracks ? (
               <li>
-                {i18n(
-                  'specs.tracks',
-                  { count: album.tracks_total || album.tracks.length },
-                )}
+                {album.tracks_total || album.tracks.length}
+                {' '}
+tracks
               </li>
             ) : null}
-            {!slim_mode && album.tracks ? (
+            {!this.props.slim_mode && album.tracks ? (
               <li>
                 <Dater type="total-time" data={album.tracks} />
               </li>
             ) : null}
-            {!slim_mode && album.play_count ? (
+            {!this.props.slim_mode && album.play_count ? (
               <li>
-                {i18n(
-                  'specs.plays',
-                  { count: nice_number(album.play_count) },
-                )}
+                <NiceNumber value={album.play_count} />
+                {' '}
+plays
               </li>
             ) : null}
-            {!slim_mode && album.listeners ? (
+            {!this.props.slim_mode && album.listeners ? (
               <li>
-                {i18n(
-                  'specs.plays',
-                  { count: nice_number(album.listeners) },
-                )}
+                <NiceNumber value={album.listeners} />
+                {' '}
+listeners
               </li>
             ) : null}
           </ul>
         </div>
 
         <div className="actions">
-          <button type="button" className="button button--primary" onClick={this.play}>
-            <I18n path="actions.play" />
+          <button className="button button--primary" onClick={(e) => this.play()}>
+            Play
           </button>
-          {uriSource(uri) === 'spotify' && (
+          {uriSource(this.props.uri) == 'spotify' ? (
             <FollowButton
               className="secondary"
-              uri={uri}
+              uri={this.props.uri}
+              addText="Add to library"
+              removeText="Remove from library"
               is_following={this.inLibrary()}
             />
-          )}
-          <ContextMenuTrigger onTrigger={this.handleContextMenu} />
+          ) : null}
+          <ContextMenuTrigger onTrigger={(e) => this.handleContextMenu(e)} />
         </div>
 
         <section className="list-wrapper">
@@ -282,18 +288,20 @@ export class Album extends React.Component {
           <LazyLoadListener
             loadKey={album.tracks_more}
             showLoader={is_loading_tracks}
-            loadMore={this.loadMore}
+            loadMore={() => this.loadMore()}
           />
         </section>
 
         {album.wiki ? (
           <section className="wiki">
-            <h4 className="wiki__title">{i18n('album.wiki.title')}</h4>
+            <h4 className="wiki__title">About</h4>
             <div className="wiki__text">
               <p>{album.wiki}</p>
               <br />
               <div className="mid_grey-text">
-                <I18n path="album.wiki.published" params={{ date: album.wiki_publish_date }} />
+                Published:
+                {' '}
+                {album.wiki_publish_date}
               </div>
             </div>
           </section>

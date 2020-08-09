@@ -172,6 +172,7 @@ export default function reducer(mopidy = {}, action) {
       return { ...mopidy, search_results: {} };
 
     case 'MOPIDY_SEARCH_RESULTS_LOADED':
+
       // Fetch or create our container
       if (mopidy.search_results) {
         var search_results = { ...mopidy.search_results };
@@ -179,10 +180,7 @@ export default function reducer(mopidy = {}, action) {
         var search_results = {};
       }
 
-      search_results = {
-        ...search_results,
-        query: action.query,
-      };
+      search_results.query = action.query;
 
       if (search_results[action.context]) {
         search_results[action.context] = [...search_results[action.context], ...action.results];

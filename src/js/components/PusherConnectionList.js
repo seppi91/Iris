@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as pusherActions from '../services/pusher/actions';
 import { indexToArray } from '../util/arrays';
-import { I18n } from '../locale';
 
 class PusherConnectionList extends React.Component {
   componentDidMount() {
@@ -20,20 +19,12 @@ class PusherConnectionList extends React.Component {
 
   render() {
     if (!this.props.connected) {
-      return (
-        <div className="pusher-connection-list mid_grey-text">
-          <I18n path="settings.pusher_connection_list.not_connected" />
-        </div>
-      );
+      return <div className="pusher-connection-list mid_grey-text">Not connected</div>;
     }
 
     const connections = indexToArray(this.props.connections);
     if (connections.length <= 0) {
-      return (
-        <div className="pusher-connection-list mid_grey-text">
-          <I18n path="settings.pusher_connection_list.no_connections" />
-        </div>
-      );
+      return <div className="pusher-connection-list mid_grey-text">No connections</div>;
     }
 
     return (
@@ -46,18 +37,22 @@ class PusherConnectionList extends React.Component {
 					  }
 
 					  return (
-              <div className={is_me ? 'connection cf me' : 'connection cf'} key={connection.connection_id}>
-                <div className="col col--w30">
-                  { connection.username }
-                  {is_me && <I18n path="settings.pusher_connection_list.you" />}
-                </div>
-                <div className="col col--w70">
-                  {connection.ip}
-                  <span className="mid_grey-text">
-                    {` (${connection.connection_id})`}
-                  </span>
-                </div>
-              </div>
+  <div className={is_me ? 'connection cf me' : 'connection cf'} key={connection.connection_id}>
+    <div className="col col--w30">
+      { connection.username }
+      {' '}
+      {is_me ? <span>(you)</span> : null }
+    </div>
+    <div className="col col--w70">
+      {connection.ip}
+      <span className="mid_grey-text">
+        {' '}
+(
+        {connection.connection_id}
+)
+      </span>
+    </div>
+  </div>
 					  );
 					})
 				}
@@ -66,7 +61,7 @@ class PusherConnectionList extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state, ownProps) => ({
   connected: state.pusher.connected,
   connection_id: state.pusher.connection_id,
   connections: state.pusher.connections,

@@ -128,12 +128,6 @@
           color: colour(red);
         }
       }
-
-      @include theme('light') {
-        &:not(:hover) {
-          color: colour('darkest_grey');
-        }
-      }
     }
 
     @include responsive($bp_medium) {
@@ -227,10 +221,12 @@
     }
   }
 
-  &--edit-radio,
-  &--add-to-queue {
+  &--edit-radio {
     form {
       .field {
+        position: relative;
+        margin-top: 50px;
+
         input[type="text"] {
           padding-right: 80px;
         }
@@ -314,10 +310,6 @@
             align-items: center;
             display: flex;
             flex-flow: column;
-
-            .thumbnail {
-              max-width: 50vh;
-            }
           }
 
           &__info {

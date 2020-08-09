@@ -5,7 +5,6 @@ import { bindActionCreators } from 'redux';
 import Modal from './Modal';
 import * as coreActions from '../../services/core/actions';
 import * as uiActions from '../../services/ui/actions';
-import { i18n, I18n } from '../../locale';
 
 class CreatePlaylist extends React.Component {
   constructor(props) {
@@ -20,14 +19,14 @@ class CreatePlaylist extends React.Component {
   }
 
   componentDidMount() {
-    this.props.uiActions.setWindowTitle(i18n('modal.edit_playlist.title_create'));
+    this.props.uiActions.setWindowTitle('Create playlist');
   }
 
   createPlaylist(e) {
     e.preventDefault();
 
     if (!this.state.name || this.state.name == '') {
-      this.setState({ error: i18n('modal.edit_playlist.name_required') });
+      this.setState({ error: 'Name is required' });
       return false;
     }
     this.props.coreActions.createPlaylist(
@@ -49,9 +48,7 @@ class CreatePlaylist extends React.Component {
         return (
           <div>
             <div className="field text">
-              <div className="name">
-                <I18n path="modal.edit_playlist.name" />
-              </div>
+              <div className="name">Name</div>
               <div className="input">
                 <input
                   type="text"
@@ -62,9 +59,7 @@ class CreatePlaylist extends React.Component {
             </div>
 
             <div className="field text">
-              <div className="name">
-                <I18n path="modal.edit_playlist.description" />
-              </div>
+              <div className="name">Description</div>
               <div className="input">
                 <input
                   type="text"
@@ -77,7 +72,7 @@ class CreatePlaylist extends React.Component {
 
             <div className="field checkbox white">
               <div className="name">
-								<I18n path="modal.edit_playlist.options.label" />
+								Options
               </div>
               <div className="input">
                 <label>
@@ -87,9 +82,7 @@ class CreatePlaylist extends React.Component {
                     checked={this.state.is_public}
                     onChange={(e) => this.setState({ is_public: !this.state.is_public })}
                   />
-                  <span className="label">
-                    <I18n path="modal.edit_playlist.options.public" />
-                  </span>
+                  <span className="label">Public</span>
                 </label>
                 <label>
                   <input
@@ -98,9 +91,7 @@ class CreatePlaylist extends React.Component {
                     checked={this.state.is_collaborative}
                     onChange={(e) => this.setState({ is_collaborative: !this.state.is_collaborative })}
                   />
-                  <span className="label">
-                    <I18n path="modal.edit_playlist.options.collaborative" />
-                  </span>
+                  <span className="label">Collaborative</span>
                 </label>
               </div>
             </div>
@@ -111,9 +102,7 @@ class CreatePlaylist extends React.Component {
         return (
           <div>
             <div className="field text">
-              <div className="name">
-                <I18n path="modal.edit_playlist.name" />
-              </div>
+              <div className="name">Name</div>
               <div className="input">
                 <input
                   type="text"
@@ -132,14 +121,12 @@ class CreatePlaylist extends React.Component {
 
     return (
       <Modal className="modal--create-playlist">
-        <h1>
-          <I18n path="modal.edit_playlist.title_create" />
-        </h1>
+        <h1>Create playlist</h1>
         <form onSubmit={(e) => this.createPlaylist(e)}>
 
           <div className="field radio white">
             <div className="name">
-							<I18n path="modal.edit_playlist.provider" />
+							Provider
             </div>
             <div className="input">
               <label>
@@ -150,9 +137,7 @@ class CreatePlaylist extends React.Component {
                   checked={this.state.scheme === 'm3u'}
                   onChange={(e) => this.setState({ scheme: e.target.value })}
                 />
-                <span className="label">
-                  <I18n path="services.mopidy.title" />
-                </span>
+                <span className="label">Mopidy</span>
               </label>
               <label>
                 <input
@@ -163,9 +148,7 @@ class CreatePlaylist extends React.Component {
                   checked={this.state.scheme === 'spotify'}
                   onChange={(e) => this.setState({ scheme: e.target.value })}
                 />
-                <span className="label">
-                  <I18n path="services.spotify.title" />
-                </span>
+                <span className="label">Spotify</span>
               </label>
             </div>
           </div>
@@ -173,9 +156,7 @@ class CreatePlaylist extends React.Component {
           {this.renderFields()}
 
           <div className="actions centered-text">
-            <button type="submit" className="button button--primary button--large">
-              <I18n path="modal.edit_playlist.create_playlist" />
-            </button>
+            <button type="submit" className="button button--primary button--large">Create playlist</button>
           </div>
 
         </form>

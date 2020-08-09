@@ -69,13 +69,6 @@ export function setWindowFocus(window_focus) {
   };
 }
 
-export function setLanguage(language) {
-  return {
-    type: 'SET_LANGUAGE',
-    language,
-  };
-}
-
 export function hideContextMenu() {
   return {
     type: 'HIDE_CONTEXT_MENU',
@@ -179,7 +172,7 @@ export function createNotification(data) {
   }
 
   // Shortcut notifications are short and sweet
-  if (data.type === 'shortcut') {
+  if (data.type == 'shortcut') {
     data.duration = 0.4;
   }
 

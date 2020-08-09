@@ -2,7 +2,7 @@
 import React from 'react';
 
 import LinksSentence from './LinksSentence';
-import { Dater, dater } from './Dater';
+import Dater from './Dater';
 import URILink from './URILink';
 import ContextMenuTrigger from './ContextMenuTrigger';
 import Icon from './Icon';
@@ -12,7 +12,6 @@ import {
   uriType,
   scrollTo,
 } from '../util/helpers';
-import { I18n } from '../locale';
 
 export default class ListItem extends React.Component {
   constructor(props) {
@@ -83,28 +82,40 @@ export default class ListItem extends React.Component {
     if (key_string === 'tracks_total' || key_string === 'tracks_uris.length') {
       return (
         <span>
-          <I18n path="specs.tracks" count={value} />
+          {value}
+          {' '}
+          tracks
         </span>
       );
     }
     if (key_string === 'followers') {
       return (
         <span>
-          <I18n path="specs.followers" count={value.toLocaleString()} />
+          {value.toLocaleString()}
+          {' '}
+          followers
         </span>
       );
     }
     if (key_string === 'added_at') {
       return (
         <span>
-          <I18n path="specs.added_ago" time={dater('ago', value)} />
+          Added
+          {' '}
+          <Dater type="ago" data={value} />
+          {' '}
+          ago
         </span>
       );
     }
     if (key_string === 'last_modified') {
       return (
         <span>
-          <I18n path="specs.updated_ago" time={dater('ago', value)} />
+          Updated
+          {' '}
+          <Dater type="ago" data={value} />
+          {' '}
+          ago
         </span>
       );
     }

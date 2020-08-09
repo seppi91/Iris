@@ -6,7 +6,6 @@ import TextField from './Fields/TextField';
 import SnapcastGroups from './SnapcastGroups';
 import * as uiActions from '../services/ui/actions';
 import * as actions from '../services/snapcast/actions';
-import { I18n } from '../locale';
 
 const Snapcast = (props) => {
   const {
@@ -27,9 +26,7 @@ const Snapcast = (props) => {
     <div className="snapcast">
 
       <div className="field checkbox">
-        <div className="name">
-          <I18n path="snapcast.enabled" />
-        </div>
+        <div className="name">Enabled</div>
         <div className="input">
           <label>
             <input
@@ -39,7 +36,7 @@ const Snapcast = (props) => {
               onChange={() => actions.setEnabled(!enabled)}
             />
             <span className="label">
-              <I18n path="snapcast.enabled" />
+              Enabled
             </span>
           </label>
           <label>
@@ -50,16 +47,14 @@ const Snapcast = (props) => {
               onChange={() => uiActions.set({ snapcast_show_disconnected_clients: !show_disconnected_clients })}
             />
             <span className="label">
-              <I18n path="snapcast.show_disconnected_clients" />
+              Show disconnected clients
             </span>
           </label>
         </div>
       </div>
 
       <div className="field">
-        <div className="name">
-          <I18n path="snapcast.host" />
-        </div>
+        <div className="name">Host</div>
         <div className="input">
           <TextField
             value={host}
@@ -70,9 +65,7 @@ const Snapcast = (props) => {
       </div>
 
       <div className="field">
-        <div className="name">
-          <I18n path="snapcast.port" />
-        </div>
+        <div className="name">Port</div>
         <div className="input">
           <TextField
             value={port}

@@ -1,8 +1,8 @@
 
 import React, { memo } from 'react';
 
-const nice_number = (value) => {
-  let formatted = parseInt(value);
+export default memo((props) => {
+  let formatted = parseInt(props.value);
 
   // > 1 million
   if (formatted > 1000000) {
@@ -20,13 +20,4 @@ const nice_number = (value) => {
   }
 
   return formatted;
-};
-
-const NiceNumber = memo(({ value }) => nice_number(value));
-
-export {
-  NiceNumber,
-  nice_number,
-};
-
-export default NiceNumber;
+});

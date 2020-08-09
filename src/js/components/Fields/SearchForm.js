@@ -3,8 +3,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as uiActions from '../../services/ui/actions';
 import { uriType } from '../../util/helpers';
-import Icon from '../Icon';
-import { i18n } from '../../locale';
 
 class SearchForm extends React.Component {
   constructor(props) {
@@ -29,21 +27,14 @@ class SearchForm extends React.Component {
 
   shouldComponentUpdate = (nextProps, nextState) => {
     const { term: termProp } = this.props;
-    const { term: termState } = this.state;
+    const { term: termState } = this.props;
     if (nextProps.term !== termProp) return true;
     if (nextState.term !== termState) return true;
 
     return false;
   }
 
-  onChange = (e) => {
-    this.setState({
-      term: e.target.value,
-      pristine: false,
-    });
-  }
-
-  onBlur = () => {
+  handleBlur() {
     const { onBlur } = this.props;
     const { term } = this.state;
     this.setState({ pristine: false });
@@ -52,60 +43,52 @@ class SearchForm extends React.Component {
     }
   }
 
-  onFocus = () => {
+  handleFocus(e) {
     this.setState({ pristine: false });
   }
 
-  onSubmit = (e) => {
-    const { term } = this.state;
-    const { history } = this.props;
+  handleSubmit(e) {
     e.preventDefault();
 
     // check for uri type matching
-    switch (uriType(term)) {
+    switch (uriType(this.state.term)) {
       case 'album':
-        history.push(`/album/${encodeURIComponent(term)}`);
+        this.props.history.push(`/album/${encodeURIComponent(this.state.term)}`);
         break;
 
       case 'artist':
-        history.push(`/artist/${encodeURIComponent(term)}`);
+        this.props.history.push(`/artist/${encodeURIComponent(this.state.term)}`);
         break;
 
       case 'playlist':
-        history.push(`/playlist/${encodeURIComponent(term)}`);
+        this.props.history.push(`/playlist/${encodeURIComponent(this.state.term)}`);
         break;
 
       case 'track':
-        history.push(`/track/${encodeURIComponent(term)}`);
+        this.props.history.push(`/track/${encodeURIComponent(this.state.term)}`);
         break;
 
       default:
-        this.props.onSubmit(term);
+        this.props.onSubmit(this.state.term);
         break;
     }
 
     return false;
   }
 
-  render = () => {
-    const { term } = this.state;
-    const { onReset } = this.props;
-
+  render() {
     return (
-      <form className="search-form" onSubmit={this.onSubmit}>
+      <form className="search-form" onSubmit={(e) => this.handleSubmit(e)}>
         <label>
           <input
             type="text"
-            placeholder={i18n('fields.search')}
-            onChange={this.onChange}
-            onBlur={this.onBlur}
-            onFocus={this.onFocus}
-            value={term}
+            placeholder="Search..."
+            onChange={(e) => this.setState({ term: e.target.value, pristine: false })}
+            onBlur={(e) => this.handleBlur}
+            onFocus={(e) => this.handleFocus}
+            value={this.state.term}
           />
         </label>
-        {term && (
-          <Icon name="close" className="search-form__reset" onClick={onReset} />
-        )}
       </form>
     );
   }

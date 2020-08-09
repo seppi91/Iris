@@ -9,12 +9,11 @@ import ErrorBoundary from '../../components/ErrorBoundary';
 import * as uiActions from '../../services/ui/actions';
 import * as mopidyActions from '../../services/mopidy/actions';
 import { formatImages } from '../../util/format';
-import { I18n, i18n } from '../../locale';
 
 class LibraryBrowse extends React.Component {
   componentDidMount() {
     this.loadDirectory();
-    this.props.uiActions.setWindowTitle(i18n('library.browse.title'));
+    this.props.uiActions.setWindowTitle('Browse');
   }
 
   componentDidUpdate = ({ mopidy_connected: prev_mopidy_connected}) => {
@@ -98,7 +97,7 @@ class LibraryBrowse extends React.Component {
       <div className="view library-local-view">
         <Header>
           <Icon name="folder" type="material" />
-					<I18n path="library.browse.title" />
+					Browse
         </Header>
         <section className="content-wrapper">
           <div className="grid grid--tiles">
