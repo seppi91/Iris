@@ -662,6 +662,7 @@ class IrisCore(pykka.ThreadingActor):
             return response
 
     async def load_more_tracks(self, *args, **kwargs):
+        logger.info("Loading more radio tracks from Spotify")
         try:
             await self.get_spotify_token()
             spotify_token = self.spotify_token
@@ -710,7 +711,7 @@ class IrisCore(pykka.ThreadingActor):
 
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             error = json.loads(e.read())
-            error = {
+            error_response = {
                 "message": "Could not fetch Spotify recommendations: "
                 + error["error_description"]
             }
@@ -718,10 +719,10 @@ class IrisCore(pykka.ThreadingActor):
                 "Could not fetch Spotify recommendations: "
                 + error["error_description"]
             )
-            logger.debug(error)
+            logger.debug(error_response)
             return False
 
-    def check_for_radio_update(self):
+    async def check_for_radio_update(self):
         tracklistLength = self.core.tracklist.get_length().get()
         if tracklistLength < 3 and self.radio["enabled"] == 1:
 
@@ -731,7 +732,7 @@ class IrisCore(pykka.ThreadingActor):
             # We've run out of pre-fetched tracks, so we need to get more
             # recommendations
             if len(uris) < 3:
-                uris = self.load_more_tracks()
+                uris = await self.load_more_tracks()
 
             # Remove the next batch, and update our results
             self.radio["results"] = uris[3:]
@@ -1020,14 +1021,24 @@ class IrisCore(pykka.ThreadingActor):
     async def refresh_spotify_token(self, *args, **kwargs):
         callback = kwargs.get("callback", None)
 
-        # Use client_id and client_secret from config
-        # This was introduced in Mopidy-Spotify 3.1.0
-        url = "https://auth.mopidy.com/spotify/token"
-        data = {
-            "client_id": self.config["spotify"]["client_id"],
-            "client_secret": self.config["spotify"]["client_secret"],
-            "grant_type": "client_credentials",
-        }
+        try:
+            # Use client_id and client_secret from config
+            # This was introduced in Mopidy-Spotify 3.1.0
+            url = "https://auth.mopidy.com/spotify/token"
+            data = {
+                "client_id": self.config["spotify"]["client_id"],
+                "client_secret": self.config["spotify"]["client_secret"],
+                "grant_type": "client_credentials",
+            }
+        except (Exception):
+            error = {
+                "message": "Could not refresh Spotify token: invalid configuration"
+            }
+
+            if callback:
+                callback(False, error)
+            else:
+                return error
 
         try:
             http_client = tornado.httpclient.AsyncHTTPClient()
@@ -1056,7 +1067,7 @@ class IrisCore(pykka.ThreadingActor):
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             error = json.loads(e.read())
             error = {
-                "message": "Could not refresh token: "
+                "message": "Could not refresh Spotify token: "
                 + error["error_description"]
             }
 
@@ -1127,12 +1138,11 @@ class IrisCore(pykka.ThreadingActor):
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             error = json.loads(e.read())
             error = {
-                "message": "Could not fetch Spotify recommendations: "
+                "message": "Could not fetch Genius lyrics: "
                 + error["error_description"]
             }
             logger.error(
-                "Could not fetch Spotify recommendations: "
-                + error["error_description"]
+                "Could not fetch Genius lyrics: " + error["error_description"]
             )
             logger.debug(error)
             return error
