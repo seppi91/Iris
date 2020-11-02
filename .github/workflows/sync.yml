@@ -3,13 +3,14 @@ name: Sync Fork
 on:
   schedule:
     - cron: '0 10 * * *'
+  workflow_dispatch: # on button click
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: TG908/fork-sync@v1.1
+      - uses: tgymnich/fork-sync@v1.2
         with:
           github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           owner: jaedb
