@@ -52,7 +52,6 @@ RUN python3.7 -m pip install --no-cache \
   Mopidy-Emby \
   Mopidy-Party \
   Mopidy-Podcast \
-  Mopidy-Podcast-iTunes \
   Mopidy-radio-de \
   Mopidy-Scrobbler \
   Mopidy-SoundCloud \
