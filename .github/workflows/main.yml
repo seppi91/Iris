@@ -1,5 +1,4 @@
-# This is a basic workflow to help you get started with Actions
-
+# This workflow is an automation to build platform specific docker images and publishs them on DockerHub
 name: CI
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -8,11 +7,21 @@ on:
   schedule:
     - cron: '0 10 * * *' # everyday at 10am
   push:
-    branches: [ master ]
-    tags: 
+    branches:
+      - 'master'
+    tags:
       - '*'
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
   pull_request:
-    branches: [ master ]
+    branches:
+      - 'master'
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -20,65 +29,77 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
+    
+    # Set environment variables
+    env:
+      DOCKERHUB_SLUG: seppi91/iris
+      
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-
-    - name: Prepare
-      id: prepare
-      run: |
-        DOCKER_IMAGE=seppi91/iris
-        DOCKER_PLATFORMS=linux/amd64,linux/arm/v7,linux/386
-        VERSION=edge
-
-        if [[ $GITHUB_REF == refs/tags/* ]]; then
-          VERSION=${GITHUB_REF#refs/tags/}
-        fi
-        if [ "${{ github.event_name }}" = "schedule" ]; then
-          VERSION=nightly
-        fi
-
-        TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
-        if [[ $VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-          TAGS="$TAGS --tag ${DOCKER_IMAGE}:latest"
-        fi
-
-        echo ::set-output name=docker_image::${DOCKER_IMAGE}
-        echo ::set-output name=version::${VERSION}
-        echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
-          --build-arg VERSION=${VERSION} \
-          --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-          --build-arg VCS_REF=${GITHUB_SHA::8} \
-          ${TAGS} --file ./Dockerfile ./
+        # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+        # GitHub Action to extract metadata (tags, labels) for Docker.
+      - name: Docker meta
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: |
+            ${{ env.DOCKERHUB_SLUG }}
+          tag-edge: true
+          tag-match: ^v(\d{1,3}.\d{1,3}.\d{1,3})$
+          tag-match-group: 1
           
-    - name: Set up Docker Buildx
-      uses: crazy-max/ghaction-docker-buildx@v3
-      
-    - name: Docker Buildx (build)
-      run: |
-        docker buildx build --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
+        # GitHub Action to install QEMU static binaries.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
         
-    - name: Docker Login
-      if: success() && github.event_name != 'pull_request'
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKERIO_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKERIO_PASSWORD }}
-      run: |
-        echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
+        # GitHub Action to set up Docker Buildx.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          buildkitd-flags: "--debug"
+          
+        # GitHub Action to login to DockerHub.
+      - name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERIO_USERNAME }}
+          password: ${{ secrets.DOCKERIO_PASSWORD }}
         
-    - name: Docker Buildx (push)
-      if: success() && github.event_name != 'pull_request'
-      run: |
-        docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
-        
-    - name: Docker Check Manifest
-      if: always() && github.event_name != 'pull_request'
-      run: |
-        docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+        # GitHub Action to build and push Docker images with Buildx.
+      - name: Build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          build-args: |
+            VERSION=${{ steps.docker_meta.outputs.version }} \
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            VCS_REF=${GITHUB_SHA::8}
+          labels: |
+            ${{ steps.docker_meta.outputs.labels }}
+            org.opencontainers.image.title=seppi91/iris
+            org.opencontainers.image.description=Docker image update notifier
+            org.opencontainers.image.vendor=seppi91
+            
+      - name: Check manifest
+        if: github.event_name != 'pull_request'
+        run: |
+          docker buildx imagetools inspect ${{ env.DOCKERHUB_SLUG }}:${{ steps.docker_meta.outputs.version }}
+          
+      - name: Inspect image
+        if: github.event_name != 'pull_request'
+        run: |
+          docker pull ${{ env.DOCKERHUB_SLUG }}:${{ steps.docker_meta.outputs.version }}
+          docker image inspect ${{ env.DOCKERHUB_SLUG }}:${{ steps.docker_meta.outputs.version }}
 
-    - name: Clear
-      if: always() && github.event_name != 'pull_request'
-      run: |
-        rm -f ${HOME}/.docker/config.json
+      - name: Clear
+        if: always() && github.event_name != 'pull_request'
+        run: |
+            rm -f ${HOME}/.docker/config.json
