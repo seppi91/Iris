@@ -17,6 +17,10 @@ RUN apt-get update \
     python-dev \
     python-gst-1.0 \
     python3-gst-1.0 \
+    build-essential \
+    libdbus-glib-1-dev \
+    libgirepository1.0-dev \
+    dleyna-server \
   && rm -rf /var/lib/apt/lists/*
 
 # Make python3-gst-1.0 available to non-Debian Python 3.7 installation
