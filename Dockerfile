@@ -47,20 +47,20 @@ RUN python3.7 -m pip install --no-cache \
   mopidy-mpd \
   mopidy-spotify \
   mopidy-local \
-  Mopidy-GMusic \
-  Mopidy-Dirble \
-  Mopidy-Emby \
-  Mopidy-Party \
-  Mopidy-Podcast \
-  Mopidy-radio-de \
-  Mopidy-Scrobbler \
-  Mopidy-SoundCloud \
-  Mopidy-Spotify-Web \
-  Mopidy-YouTube \
   Mopidy-TuneIn \
   Mopidy-Youtube \
   Mopidy-SoundCloud \
   Mopidy-Podcast \
+  Mopidy-dLeyna \
+  dbus-python \
+  # additional extensions added by fork seppi91
+  Mopidy-GMusic \
+  Mopidy-Dirble \
+  Mopidy-Jellyfin \
+  Mopidy-Party \
+  Mopidy-radio-de \
+  Mopidy-Scrobbler \
+  #Mopidy-Spotify-Web \
   # pip not up-to-date for Mopidy-Tidal (https://github.com/tehkillerbee/mopidy-tidal/issues/14)
   git+https://github.com/tehkillerbee/mopidy-tidal.git@master
 
